@@ -1,11 +1,20 @@
-# mo图(LDH)下载用户脚本
+# mo(LDH)图片下载用户脚本/图片解锁脚本
+
+## 快捷链接
+
+如果你知道什么是用户脚本（油猴）应该就不用看下面的教学了……
+
+图片下载器 【[GreasyFork](https://greasyfork.org/zh-CN/scripts/459051-mo-ldh-images-download)】 【[直接安装](https://gist.github.com/locoda/460ac9d42b05e75df12ef2f80d66c3d2/raw/ldh-mo-img-dl.user.js)】
+
+图片解锁器 【[GreasyFork](https://greasyfork.org/zh-CN/scripts/459052-mo-ldh-images-limitation-remover)】 【[直接安装](https://gist.github.com/locoda/460ac9d42b05e75df12ef2f80d66c3d2/raw/ldh-mo-remove-protectimg.user.js)】
 
 ## 电脑端使用方法
 
 1. 安装一个用户脚本管理器
    - 本人使用的是Tampermonkey（油猴）（[官网](https://www.tampermonkey.net/)）（[Chrome商店](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo)）
    - 本人仅在Tampermonkey上测试，其他脚本管理器若有支持问题请私信！
-2. 【[点击这里](https://gist.github.com/locoda/460ac9d42b05e75df12ef2f80d66c3d2/raw/ldh-mo-img-dl.user.js)】安装最新版的用户脚本（脚本管理器自动识别）
+2. 【[点击这里](https://gist.github.com/locoda/460ac9d42b05e75df12ef2f80d66c3d2/raw/ldh-mo-img-dl.user.js)】安装最新版的图片下载器用户脚本（脚本管理器自动识别）
+   - 如果你只需要解锁图片右键功能，请【[点击这里](https://gist.github.com/locoda/460ac9d42b05e75df12ef2f80d66c3d2/raw/ldh-mo-remove-protectimg.user.js)】安装轻量版图片解锁器
 3. 在mo的页面中点击【下载所有图片】按钮即可
    - ![Chrome Download Demo](https://gist.githubusercontent.com/locoda/460ac9d42b05e75df12ef2f80d66c3d2/raw/chrome-download.png)
 
@@ -20,6 +29,7 @@
    - 本人仅在Stay上进行测试，其他脚本管理器若有支持问题请私信！
 2. 【[点击这里](https://gist.github.com/locoda/460ac9d42b05e75df12ef2f80d66c3d2/raw/ldh-mo-img-dl.user.js)】安装最新版的用户脚本（在页面底部弹出按钮）
    - ![Install User Script on iOS](https://gist.github.com/locoda/460ac9d42b05e75df12ef2f80d66c3d2/raw/iOS-user-script-install.png)
+   - 如果你只需要解锁图片右键功能，请【[点击这里](https://gist.github.com/locoda/460ac9d42b05e75df12ef2f80d66c3d2/raw/ldh-mo-remove-protectimg.user.js)】安装轻量版图片解锁器
 3. 【[点击这里](https://www.icloud.com/shortcuts/bbd0e1dc58ed416f912ebb060beea996)】安装配套的iOS快捷指令
 4. 在mo的页面中点击【生成图片链接】按钮，将生成的文本分享至iOS快捷指令中，图片将直接保存到相册
    - 演示请看【[此处](https://gist.github.com/locoda/460ac9d42b05e75df12ef2f80d66c3d2#file-ios-download-gif)】
