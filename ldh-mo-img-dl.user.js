@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LDH mo Images download
 // @namespace    https://1mether.me/
-// @version      0.2
+// @version      0.3
 // @description  Download ALL Images from LDH mo page
 // @author       https://github.com/locoda
 // @match        https*://m.tribe-m.jp/diary/detail?id=*
@@ -16,7 +16,7 @@
 (function () {
   "use strict";
 
-  injectButton();
+  injectButtons();
 })();
 
 const keywords = ["uplcmn", "upload"]; // , "off_shot", "offshot", "artist_photo"];
@@ -29,19 +29,32 @@ function findEligibleImgs() {
   return imgSrcs;
 }
 
-function injectButton() {
+function injectButtons() {
   var article = document.querySelector("article");
   var downloadButton = document.createElement("BUTTON");
   var downloadButtonText = document.createTextNode("下载所有图片");
   downloadButton.appendChild(downloadButtonText);
   downloadButton.onclick = downloadOnClickHandler;
   article.insertBefore(downloadButton, article.firstChild);
+  var copyButton = document.createElement("BUTTON");
+  var copyButtonText = document.createTextNode("复制图片链接");
+  copyButton.appendChild(copyButtonText);
+  copyButton.onclick = copyOnClickHandler;
+  article.insertBefore(copyButton, article.firstChild);
 }
 
 function downloadOnClickHandler() {
   var imgs = findEligibleImgs();
   console.log(imgs);
   downloadAll(imgs);
+}
+
+function copyOnClickHandler() {
+    var imgs = findEligibleImgs();
+    console.log(imgs);
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(imgs.join("\n"));
+    }
 }
 
 function downloadAll(imgs) {
