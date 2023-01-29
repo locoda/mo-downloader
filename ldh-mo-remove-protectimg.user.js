@@ -2,7 +2,7 @@
 // @name                mo (LDH) Images Limitation Remover
 // @name:zh-CN          mo (LDH) 图片解锁器
 // @namespace           https://1mether.me/
-// @version             0.2
+// @version             0.3
 // @description         Remove "protectimg" from the page
 // @description:zh-CN   移除页面中的"protectimg"元素
 // @author              乙醚(@locoda)
@@ -18,9 +18,13 @@
 // @license             MIT
 // ==/UserScript==
 
-
 (function () {
     "use strict";
+    // 移除右键限制
+    document.oncontextmenu = function () {
+        return true;
+    };
+    // 移除protectimg限制
     document
         .querySelectorAll(".protectimg")
         .forEach((node) => node.classList.remove("protectimg"));
