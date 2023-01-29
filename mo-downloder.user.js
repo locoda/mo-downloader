@@ -1,10 +1,10 @@
 // ==UserScript==
-// @name                mo (LDH) Images download
-// @name:zh-CN          mo (LDH) 图片下载器
+// @name                mo (LDH) Downloader
+// @name:zh-CN          mo (LDH) 下载器
 // @namespace           https://1mether.me/
 // @version             0.18
-// @description         Add download button for downloading ALL Images from LDH mo details page
-// @description:zh-CN   在mo的内容页增加下载和复制图片链接的按钮，用于批量下载页面图片
+// @description         Add download button for downloading ALL images/videos from LDH mo details page
+// @description:zh-CN   在mo的内容页增加下载和复制图片链接的按钮，用于批量下载页面图片或视频
 // @author              乙醚(@locoda)
 // @match               http*://m.tribe-m.jp/*
 // @match               http*://m.ex-m.jp/*
@@ -12,8 +12,8 @@
 // @match               http*://m.ldhgirls-m.jp/*
 // @icon                https://www.google.com/s2/favicons?sz=64&domain=ldh.co.jp
 // @source              https://github.com/locoda/mo-downloader
-// @updateURL           https://github.com/locoda/mo-downloader/raw/main/mo-downloder.user.js
-// @downloadURL         https://github.com/locoda/mo-downloader/raw/main/mo-downloder.user.js
+// @updateURL           https://cdn.statically.io/gh/locoda/mo-downloader/main/mo-downloder.user.js
+// @downloadURL         https://cdn.statically.io/gh/locoda/mo-downloader/main/mo-downloder.user.js
 // @grant               none
 // @license             MIT
 // ==/UserScript==
