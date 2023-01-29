@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         LDH mo Images download
+// @name         mo (LDH) Images download
 // @namespace    https://1mether.me/
-// @version      0.6
+// @version      0.61
 // @description  Add download button for downloading ALL Images from LDH mo details page
 // @author       乙醚
 // @match        http*://m.tribe-m.jp/diary/detail?id=*
