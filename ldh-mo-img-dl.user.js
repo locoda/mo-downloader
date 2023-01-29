@@ -2,7 +2,7 @@
 // @name                mo (LDH) Images download
 // @name:zh-CN          mo (LDH) 图片下载器
 // @namespace           https://1mether.me/
-// @version             0.8
+// @version             0.9
 // @description         Add download button for downloading ALL Images from LDH mo details page
 // @description:zh-CN   在mo的内容页增加下载和复制图片链接的按钮，用于批量下载页面图片
 // @author              乙醚(@locoda)
@@ -60,6 +60,7 @@ function injectButtons(imgs) {
         downloadOnClickHandler(imgs);
     });
     downloadButton.className = "ldh-mo-dl";
+    downloadButton.style = "background-color: transparent; border: solid #808080 2px; border-radius: 20px; color: #545454;"
     article.insertBefore(downloadButton, article.firstChild);
     var generateButton = document.createElement("BUTTON");
     var generateButtonText = document.createTextNode("生成图片链接");
@@ -68,6 +69,7 @@ function injectButtons(imgs) {
         generateOnClickHandler(imgs);
     });
     generateButton.className = "ldh-mo-dl";
+    generateButton.style = "background-color: transparent; border: solid #808080 2px; border-radius: 20px; color: #545454;"
     article.insertBefore(generateButton, article.firstChild);
 }
 
