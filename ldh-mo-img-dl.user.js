@@ -2,7 +2,7 @@
 // @name                mo (LDH) Images download
 // @name:zh-CN          mo (LDH) 图片下载器
 // @namespace           https://1mether.me/
-// @version             0.16
+// @version             0.17
 // @description         Add download button for downloading ALL Images from LDH mo details page
 // @description:zh-CN   在mo的内容页增加下载和复制图片链接的按钮，用于批量下载页面图片
 // @author              乙醚(@locoda)
@@ -25,7 +25,11 @@
     // 在详情页注入按钮
     if (window.location.href.includes("detail")) {
         var imgs = findEligibleImgs();
-        injectButtons(imgs);
+        injectDownloadAllButtons(imgs);
+    }
+    // 根据视频注入按钮
+    if (document.querySelector("div.limelight-player")) {
+        injectPerVideoDownloadButton();
     }
 })();
 
@@ -47,7 +51,7 @@ function findEligibleImgs() {
         .filter((img) => keywords.some((k) => img.includes(k)));
 }
 
-function injectButtons(imgs) {
+function injectDownloadAllButtons(imgs) {
     var article = document.querySelector("article");
     if (article.classList.contains("article--news")) {
         // 新闻页面特殊处理
@@ -82,6 +86,15 @@ function injectButtons(imgs) {
             downloadVideoOnClickHandler();
         });
     }
+}
+
+function injectPerVideoDownloadButton(){
+    document.querySelectorAll("div.limelight-player").forEach(videoDiv => {
+        var mediaId = videoDiv.id.substring(videoDiv.id.lastIndexOf("_") + 1)
+        injectOneButton(videoDiv.parentElement, "下载这个视频", function () {
+            downloadVideo(mediaId);
+        })
+    })
 }
 
 function injectOneButton(element, textOnButton, clickListener) {
@@ -133,7 +146,7 @@ function downloadVideoOnClickHandler() {
                 ).mediaId
         );
     console.log(videos);
-    downloadVideos(videos);
+    videos.map(video => downloadVideo(video));
 }
 
 function downloadAll(imgs) {
@@ -157,39 +170,37 @@ function downloadAll(imgs) {
     );
 }
 
-function downloadVideos(videos) {
+function downloadVideo(video) {
     const videoRequestURL =
         "https://production-ps.lvp.llnw.net/r/PlaylistService/media/<mediaId>/getMobilePlaylistByMediaId";
-    var elems = document.querySelectorAll("script");
-    videos.map((mediaId) =>
-        fetch(videoRequestURL.replace("<mediaId>", mediaId), {
-            headers: new Headers({
-                Origin: window.location.origin,
-                Referer: window.location.origin,
-            }),
-            mode: "cors",
-            cache: "no-cache",
-        })
-            .then((response) => response.json())
-            .then(
-                (response) =>
-                    response.mediaList[0].mobileUrls.filter(
-                        (v) => v.targetMediaPlatform == "MobileH264"
-                    )[0].mobileUrl
-            )
-            .then((mobileUrl) =>
-                fetch(mobileUrl.replace("http://", "https://"))
-                    .then((response) => response.blob())
-                    .then((blob) => {
-                        let tempName = mobileUrl.replace("/root-message-cxf-apache", "");
-                        dowloadBlob(
-                            window.URL.createObjectURL(blob),
-                            tempName.substring(tempName.lastIndexOf("/") + 1)
-                        );
-                    })
-                    .catch((e) => console.error(e))
-            )
-    );
+    fetch(videoRequestURL.replace("<mediaId>", video), {
+        headers: new Headers({
+            Origin: window.location.origin,
+            Referer: window.location.origin,
+        }),
+        mode: "cors",
+        cache: "no-cache",
+    })
+        .then((response) => response.json())
+        .then(
+            (response) =>
+                response.mediaList[0].mobileUrls.filter(
+                    (v) => v.targetMediaPlatform == "MobileH264"
+                )[0].mobileUrl
+        )
+        .then((mobileUrl) =>
+            fetch(mobileUrl.replace("http://", "https://"))
+                .then((response) => response.blob())
+                .then((blob) => {
+                    let tempName = mobileUrl.replace("/root-message-cxf-apache", "");
+                    dowloadBlob(
+                        window.URL.createObjectURL(blob),
+                        tempName.substring(tempName.lastIndexOf("/") + 1)
+                    );
+                })
+                .catch((e) => console.error(e))
+        )
+        ;
 }
 
 function dowloadBlob(blob, filename) {
