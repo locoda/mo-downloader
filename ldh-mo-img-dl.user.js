@@ -2,7 +2,7 @@
 // @name                mo (LDH) Images download
 // @name:zh-CN          mo (LDH) 图片下载器
 // @namespace           https://1mether.me/
-// @version             0.14
+// @version             0.15
 // @description         Add download button for downloading ALL Images from LDH mo details page
 // @description:zh-CN   在mo的内容页增加下载和复制图片链接的按钮，用于批量下载页面图片
 // @author              乙醚(@locoda)
@@ -20,13 +20,13 @@
 
 (function () {
     "use strict";
+    // 删除图片保护
+    removeProtectImg();
     // 在详情页注入按钮
     if (window.location.href.includes("detail")) {
         var imgs = findEligibleImgs();
         injectButtons(imgs);
     }
-    // 删除图片保护
-    removeProtectImg();
 })();
 
 function removeProtectImg() {
@@ -37,7 +37,7 @@ function removeProtectImg() {
 
 function findEligibleImgs() {
     const keywords = ["uplcmn", "upload"];
-    return Array.from(document.querySelectorAll("article .protectimg img"))
+    return Array.from(document.querySelectorAll("article img"))
         .map((img) => img.src)
         .filter((img) => keywords.some((k) => img.includes(k)));
 }
