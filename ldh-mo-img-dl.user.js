@@ -6,8 +6,8 @@
 // @author       https://github.com/locoda
 // @match        https*://m.tribe-m.jp/diary/detail?id=*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=tribe-m.jp
-// @updateURL    https://gist.github.com/locoda/f695aca60d752bb9df9e7baa2430ec58/raw/xhs.user.js
-// @downloadURL  https://gist.github.com/locoda/f695aca60d752bb9df9e7baa2430ec58/raw/xhs.user.js
+// @updateURL    https://gist.github.com/locoda/460ac9d42b05e75df12ef2f80d66c3d2/raw/ldh-mo-img-dl.user.js
+// @downloadURL  https://gist.github.com/locoda/460ac9d42b05e75df12ef2f80d66c3d2/raw/ldh-mo-img-dl.user.js
 // @grant        none
 // @license      MIT
 // ==/UserScript==
