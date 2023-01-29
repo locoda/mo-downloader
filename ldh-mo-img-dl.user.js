@@ -102,6 +102,7 @@ function downloadAll(imgs) {
                 Origin: window.location.origin,
             }),
             mode: "cors",
+            cache: "no-cache",
         })
             .then((response) => response.blob())
             .then((blob) =>
