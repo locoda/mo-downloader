@@ -36,7 +36,7 @@
 1. 安装一个用户脚本管理器
    - （Safari用户）我使用的是Stay（[AppStore](https://apps.apple.com/cn/app/stay-%E7%BD%91%E9%A1%B5%E7%BA%AF%E6%B5%8F%E8%A7%88/id1591620171)）（[GitHub](https://github.com/shenruisi/Stay)）
      - 安装后请打开Stay按照软件内提示设置
-   - （Alook用户）请下载【[这个文件](https://github.com/locoda/mo-downloader/blob/main/mo-downloader.alook)】，在下载管理中点击文件【添加扩展】后，直接前往3
+   - （Alook用户）请下载【[这个文件](https://cdn.statically.io/gh/locoda/mo-downloader/main/mo-downloader.alook)】，在下载管理中点击文件【添加扩展】后，直接前往3
      - 请注意，Alook扩展无法自动更新，重新安装前请在【设置-自定义设置-JavaScript扩展】中删除原本的【mo下载器】文件
 2. 【[点击这里](https://cdn.statically.io/gh/locoda/mo-downloader/main/mo-downloader.alook)】安装最新版的用户脚本
    - 如图所示：点击下方安装、点击右上角创建或保存、确认脚本存在
@@ -44,8 +44,8 @@
    - 如果你只需要解锁图片功能，请【[点击这里](https://cdn.statically.io/gh/locoda/mo-downloader/main/mo-img-unlock.user.js)】安装轻量版图片解锁器
 3. 【[点击这里](https://www.icloud.com/shortcuts/bbd0e1dc58ed416f912ebb060beea996)】安装配套的iOS快捷指令
 4. 在mo的页面中点击【生成图片链接】按钮，将生成的文本分享至iOS快捷指令中，图片将直接保存到相册
-   - 演示请看【[此处](https://github.com/locoda/mo-downloader/blob/main/demos/iOS-download.gif)】
-   - ![iOS Download Demo](https://cdn.statically.io/gh/locoda/mo-downloader/main/demos/iOS-download.gif)（这里应该有一张动图)
+   - （这里应该有一张动图，没有的话点[此处](https://cdn.statically.io/gh/locoda/mo-downloader/main/demos/iOS-download.gif))
+   ![iOS Download Demo](https://cdn.statically.io/gh/locoda/mo-downloader/main/demos/iOS-download.gif)
 
 ## 安卓端使用方法
 
