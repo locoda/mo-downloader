@@ -2,22 +2,14 @@
 // @name                mo (LDH) Images download
 // @name:zh-CN          mo (LDH) 图片下载器
 // @namespace           https://1mether.me/
-// @version             0.10
+// @version             0.11
 // @description         Add download button for downloading ALL Images from LDH mo details page
 // @description:zh-CN   在mo的内容页增加下载和复制图片链接的按钮，用于批量下载页面图片
 // @author              乙醚(@locoda)
-// @match               http*://m.tribe-m.jp/diary/*
-// @match               http*://m.tribe-m.jp/image_diary/*
-// @match               http*://m.tribe-m.jp/news/detail?news_id=*
-// @match               http*://m.ex-m.jp/diary/*
-// @match               http*://m.ex-m.jp/image_diary/*
-// @match               http*://m.ex-m.jp/news/detail?news_id=*
-// @match               http*://m.ldh-m.jp/diary/*
-// @match               http*://m.ldh-m.jp/image_diary/*
-// @match               http*://m.ldh-m.jp/news/detail?news_id=*
-// @match               http*://m.ldhgirls-m.jp/diary/*
-// @match               http*://m.ldhgirls-m.jp/image_diary/*
-// @match               http*://m.ldhgirls-m.jp/news/detail?news_id=*
+// @match               http*://m.tribe-m.jp/*
+// @match               http*://m.ex-m.jp/*
+// @match               http*://m.ldh-m.jp/*
+// @match               http*://m.ldhgirls-m.jp/*
 // @icon                https://www.google.com/s2/favicons?sz=64&domain=tribe-m.jp
 // @source              https://gist.github.com/locoda/460ac9d42b05e75df12ef2f80d66c3d2
 // @updateURL           https://gist.github.com/locoda/460ac9d42b05e75df12ef2f80d66c3d2/raw/ldh-mo-img-dl.user.js
@@ -29,9 +21,11 @@
 (function () {
     "use strict";
 
-    var imgs = findEligibleImgs();
-    injectButtons(imgs);
-    removeProtectImg();
+    if (window.location.href.includes("detail")) {
+        var imgs = findEligibleImgs();
+        injectButtons(imgs);
+        removeProtectImg();
+    }
 })();
 
 function removeProtectImg() {
@@ -53,9 +47,7 @@ function injectButtons(imgs) {
     var article = document.querySelector("article");
     // 视频下载按钮
     var downloadVideoButton = document.createElement("BUTTON");
-    var downloadVideoButtonText = document.createTextNode(
-        "下载所有视频"
-    );
+    var downloadVideoButtonText = document.createTextNode("下载所有视频");
     downloadVideoButton.appendChild(downloadVideoButtonText);
     downloadVideoButton.addEventListener("click", function () {
         downloadVideoOnClickHandler();
@@ -112,8 +104,22 @@ function generateOnClickHandler(imgs) {
 }
 
 function downloadVideoOnClickHandler() {
-    var elems = document.querySelectorAll("script")
-    var videos = Array.from(elems).filter(v => v.textContent.includes('mediaId') && !v.textContent.includes('blogTalkData')).map(v => JSON.parse(v.textContent.substring(v.textContent.indexOf('(')+1, v.textContent.lastIndexOf(')'))).mediaId);
+    var elems = document.querySelectorAll("script");
+    var videos = Array.from(elems)
+        .filter(
+            (v) =>
+                v.textContent.includes("mediaId") &&
+                !v.textContent.includes("blogTalkData")
+        )
+        .map(
+            (v) =>
+                JSON.parse(
+                    v.textContent.substring(
+                        v.textContent.indexOf("(") + 1,
+                        v.textContent.lastIndexOf(")")
+                    )
+                ).mediaId
+        );
     downloadVideos(videos);
 }
 
@@ -139,7 +145,8 @@ function downloadAll(imgs) {
 }
 
 function downloadVideos(videos) {
-    const videoRequestURL = 'https://production-ps.lvp.llnw.net/r/PlaylistService/media/<mediaId>/getMobilePlaylistByMediaId'
+    const videoRequestURL =
+        "https://production-ps.lvp.llnw.net/r/PlaylistService/media/<mediaId>/getMobilePlaylistByMediaId";
     var elems = document.querySelectorAll("script");
     var videos = Array.from(elems)
         .filter(
@@ -156,33 +163,35 @@ function downloadVideos(videos) {
                     )
                 ).mediaId
         );
-    videos.map(mediaId => fetch(videoRequestURL.replace('<mediaId>', mediaId), {
-        headers: new Headers({
-            Origin: window.location.origin,
-            Referer: window.location.origin,
-        }),
-        mode: "cors",
-        cache: "no-cache",
-    })
-        .then((response) => response.json())
-        .then(
-            (response) =>
-                response.mediaList[0].mobileUrls.filter(
-                    (v) => v.targetMediaPlatform == "MobileH264"
-                )[0].mobileUrl
-        )
-        .then((mobileUrl) =>
-            fetch(
-                mobileUrl.replace("http://", "https://")
-            ).then((response) => response.blob())
-                .then((blob) =>
-                    dowloadBlob(
-                        window.URL.createObjectURL(blob),
-                        mobileUrl.substring(mobileUrl.lastIndexOf("/") + 1)
-                    )
-                )
-                .catch((e) => console.error(e))
-        ));
+    videos.map((mediaId) =>
+        fetch(videoRequestURL.replace("<mediaId>", mediaId), {
+            headers: new Headers({
+                Origin: window.location.origin,
+                Referer: window.location.origin,
+            }),
+            mode: "cors",
+            cache: "no-cache",
+        })
+            .then((response) => response.json())
+            .then(
+                (response) =>
+                    response.mediaList[0].mobileUrls.filter(
+                        (v) => v.targetMediaPlatform == "MobileH264"
+                    )[0].mobileUrl
+            )
+            .then((mobileUrl) =>
+                fetch(mobileUrl.replace("http://", "https://"))
+                    .then((response) => response.blob())
+                    .then((blob) => {
+                        let tempName = mobileUrl.replace("/root-message-cxf-apache", "");
+                        dowloadBlob(
+                            window.URL.createObjectURL(blob),
+                            tempName.substring(tempName.lastIndexOf("/") + 1)
+                        );
+                    })
+                    .catch((e) => console.error(e))
+            )
+    );
 }
 
 function dowloadBlob(blob, filename) {
