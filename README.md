@@ -45,6 +45,7 @@
 3. 【[点击这里](https://www.icloud.com/shortcuts/bbd0e1dc58ed416f912ebb060beea996)】安装配套的iOS快捷指令
 4. 在mo的页面中点击【生成图片链接】按钮，将生成的文本分享至iOS快捷指令中，图片将直接保存到相册
    - 演示请看【[此处](https://github.com/locoda/mo-downloader/blob/main/demos/iOS-download.gif)】
+   - ![iOS Download Demo](https://cdn.statically.io/gh/locoda/mo-downloader/main/demos/iOS-download.gif)（这里应该有一张动图)
 
 ## 安卓端使用方法
 
