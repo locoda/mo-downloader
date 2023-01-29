@@ -37,7 +37,7 @@
    - （Safari用户）我使用的是Stay（[AppStore](https://apps.apple.com/cn/app/stay-%E7%BD%91%E9%A1%B5%E7%BA%AF%E6%B5%8F%E8%A7%88/id1591620171)）（[GitHub](https://github.com/shenruisi/Stay)）
      - 安装后请打开Stay按照软件内提示设置
    - （Alook用户）请下载【[这个文件](https://gist.github.com/locoda/460ac9d42b05e75df12ef2f80d66c3d2/raw/mo-downloader.alook)】，在下载管理中点击文件【添加扩展】后，直接前往3
-     - 请注意，Alook扩展无法自动更新
+     - 请注意，Alook扩展无法自动更新，重新安装前请在【设置-自定义设置-JavaScript扩展】中删除原本的【mo下载器】文件
 2. 【[点击这里](https://gist.github.com/locoda/460ac9d42b05e75df12ef2f80d66c3d2/raw/ldh-mo-img-dl.user.js)】安装最新版的用户脚本
    - 如图所示：点击下方安装、点击右上角创建或保存、确认脚本存在
    - ![Install User Script on iOS](https://gist.github.com/locoda/460ac9d42b05e75df12ef2f80d66c3d2/raw/iOS-user-script-install.png)
