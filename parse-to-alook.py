@@ -5,7 +5,7 @@ import re
 with open('mo-downloader.alook', 'r') as f:
     mo_downloader = json.load(f)
 
-with open('ldh-mo-img-dl.user.js', 'r') as f:
+with open('mo-downloder.user.js', 'r') as f:
     code = f.read()
 
 mo_downloader['version'] = re.search(r"version\s*([\d\.]*)", code).group(1)
