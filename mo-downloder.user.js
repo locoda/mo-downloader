@@ -2,7 +2,7 @@
 // @name                mo (LDH) Images download
 // @name:zh-CN          mo (LDH) 图片下载器
 // @namespace           https://1mether.me/
-// @version             0.17
+// @version             0.18
 // @description         Add download button for downloading ALL Images from LDH mo details page
 // @description:zh-CN   在mo的内容页增加下载和复制图片链接的按钮，用于批量下载页面图片
 // @author              乙醚(@locoda)
@@ -11,9 +11,9 @@
 // @match               http*://m.ldh-m.jp/*
 // @match               http*://m.ldhgirls-m.jp/*
 // @icon                https://www.google.com/s2/favicons?sz=64&domain=ldh.co.jp
-// @source              https://gist.github.com/locoda/460ac9d42b05e75df12ef2f80d66c3d2
-// @updateURL           https://gist.github.com/locoda/460ac9d42b05e75df12ef2f80d66c3d2/raw/ldh-mo-img-dl.user.js
-// @downloadURL         https://gist.github.com/locoda/460ac9d42b05e75df12ef2f80d66c3d2/raw/ldh-mo-img-dl.user.js
+// @source              https://github.com/locoda/mo-downloader
+// @updateURL           https://github.com/locoda/mo-downloader/raw/main/mo-downloder.user.js
+// @downloadURL         https://github.com/locoda/mo-downloader/raw/main/mo-downloder.user.js
 // @grant               none
 // @license             MIT
 // ==/UserScript==
