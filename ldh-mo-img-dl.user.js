@@ -2,7 +2,7 @@
 // @name                mo (LDH) Images download
 // @name:zh-CN          mo (LDH) 图片下载器
 // @namespace           https://1mether.me/
-// @version             0.12
+// @version             0.13
 // @description         Add download button for downloading ALL Images from LDH mo details page
 // @description:zh-CN   在mo的内容页增加下载和复制图片链接的按钮，用于批量下载页面图片
 // @author              乙醚(@locoda)
@@ -37,53 +37,51 @@ function removeProtectImg() {
 
 function findEligibleImgs() {
     const keywords = ["uplcmn", "upload"];
-    return Array.from(document.querySelectorAll(".protectimg img"))
+    return Array.from(document.querySelectorAll("article .protectimg img"))
         .map((img) => img.src)
         .filter((img) => keywords.some((k) => img.includes(k)));
 }
 
 function injectButtons(imgs) {
     var article = document.querySelector("article");
-    // 视频下载按钮
-    if (document.querySelector("div.limelight-player")) {
-        var downloadVideoButton = document.createElement("BUTTON");
-        var downloadVideoButtonText = document.createTextNode("下载所有视频");
-        downloadVideoButton.appendChild(downloadVideoButtonText);
-        downloadVideoButton.addEventListener("click", function () {
-            downloadVideoOnClickHandler();
-        });
-        downloadVideoButton.className = "ldh-mo-dl";
-        downloadVideoButton.style =
-            "background-color: transparent; border: solid #808080 2px; border-radius: 20px; color: #545454;";
-        article.insertBefore(downloadVideoButton, article.firstChild);
-    }
-    // 图片下载按钮
-    var downloadButton = document.createElement("BUTTON");
-    var downloadButtonText = document.createTextNode(
-        "下载所有图片 (" + imgs.length + ")"
-    );
-    downloadButton.appendChild(downloadButtonText);
-    downloadButton.addEventListener("click", function () {
-        downloadOnClickHandler(imgs);
-    });
-    downloadButton.className = "ldh-mo-dl";
-    downloadButton.style =
-        "background-color: transparent; border: solid #808080 2px; border-radius: 20px; color: #545454;";
-    article.insertBefore(downloadButton, article.firstChild);
+    // 注入按钮 div
+    var buttonsDiv = document.createElement("div");
+    buttonsDiv.className = "ldh-mo-dl";
+    article.insertBefore(buttonsDiv, article.firstChild);
     // 图片链接生成按钮
-    const isMobile = () => /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isMobile = () =>
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+            navigator.userAgent
+        );
     if (isMobile()) {
-        var generateButton = document.createElement("BUTTON");
-        var generateButtonText = document.createTextNode("生成图片链接");
-        generateButton.appendChild(generateButtonText);
-        generateButton.addEventListener("click", function () {
+        injectOneButton(buttonsDiv, "生成图片链接", function () {
             generateOnClickHandler(imgs);
         });
-        generateButton.className = "ldh-mo-dl";
-        generateButton.style =
-            "background-color: transparent; border: solid #808080 2px; border-radius: 20px; color: #545454;";
-        article.insertBefore(generateButton, article.firstChild);
     }
+    // 图片下载按钮
+    injectOneButton(
+        buttonsDiv,
+        "下载所有图片 (" + imgs.length + ")",
+        function () {
+            downloadOnClickHandler(imgs);
+        }
+    );
+    // 视频下载按钮
+    if (document.querySelector("div.limelight-player")) {
+        injectOneButton(buttonsDiv, "下载所有视频", function () {
+            downloadVideoOnClickHandler();
+        });
+    }
+}
+
+function injectOneButton(element, textOnButton, clickListener) {
+    var btn = document.createElement("BUTTON");
+    var btnText = document.createTextNode(textOnButton);
+    btn.appendChild(btnText);
+    btn.addEventListener("click", clickListener);
+    btn.style =
+        "background-color: transparent; border: solid #808080 2px; border-radius: 20px; color: #545454;";
+    element.appendChild(btn);
 }
 
 function downloadOnClickHandler(imgs) {
