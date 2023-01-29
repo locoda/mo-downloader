@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LDH mo Images download
 // @namespace    https://1mether.me/
-// @version      0.4
+// @version      0.5
 // @description  Download ALL Images from LDH mo page
 // @author       https://github.com/locoda
 // @match        http*://m.tribe-m.jp/diary/detail?id=*
@@ -16,85 +16,88 @@
 (function () {
     "use strict";
 
-    injectButtons();
-})();
+    var imgs = findEligibleImgs();
+    injectButtons(imgs);
+  })();
+  
+  
+  function findEligibleImgs() {
+    const keywords = ["uplcmn", "upload"]; // , "off_shot", "offshot", "artist_photo"];
 
-const keywords = ["uplcmn", "upload"]; // , "off_shot", "offshot", "artist_photo"];
-
-function findEligibleImgs() {
     var imgs = document.querySelectorAll(".protectimg img");
     var imgSrcs = Array.from(imgs)
-        .map((img) => img.src)
-        .filter((img) => keywords.some((k) => img.includes(k)));
+      .map((img) => img.src)
+      .filter((img) => keywords.some((k) => img.includes(k)));
     return imgSrcs;
-}
-
-function injectButtons() {
+  }
+  
+  function injectButtons(imgs) {
     var article = document.querySelector("article");
     var downloadButton = document.createElement("BUTTON");
-    var downloadButtonText = document.createTextNode("下载所有图片");
+    var downloadButtonText = document.createTextNode("下载所有图片 (" + imgs.length + ")");
     downloadButton.appendChild(downloadButtonText);
-    downloadButton.onclick = downloadOnClickHandler;
+    downloadButton.addEventListener('click', function(){
+        downloadOnClickHandler(imgs);
+    });    
     downloadButton.className = "ldh-mo-dl";
     article.insertBefore(downloadButton, article.firstChild);
-    var copyButton = document.createElement("BUTTON");
-    var copyButtonText = document.createTextNode("复制图片链接");
-    copyButton.appendChild(copyButtonText);
-    copyButton.onclick = copyOnClickHandler;
-    copyButton.className = "ldh-mo-dl";
-    article.insertBefore(copyButton, article.firstChild);
-}
-
-function downloadOnClickHandler() {
-    var imgs = findEligibleImgs();
+    var generateButton = document.createElement("BUTTON");
+    var generateButtonText = document.createTextNode("生成图片链接");
+    generateButton.appendChild(generateButtonText);
+    generateButton.addEventListener('click', function(){
+        generateOnClickHandler(imgs);
+    });    
+    generateButton.className = "ldh-mo-dl";
+    article.insertBefore(generateButton, article.firstChild);
+  }
+  
+  function downloadOnClickHandler(imgs) {
     console.log(imgs);
     downloadAll(imgs);
-}
-
-function copyOnClickHandler() {
-    var imgs = findEligibleImgs();
+  }
+  
+  function generateOnClickHandler(imgs) {
     console.log(imgs);
     var article = document.querySelector("article");
     var textarea = document.querySelector("textarea.ldh-mo-dl");
     if (!textarea) {
-        textarea = document.createElement("textarea");
-        textarea.className = "ldh-mo-dl";
-        var br = document.createElement("br");
-        article.insertBefore(br, article.firstChild);
-        article.insertBefore(textarea, article.firstChild);
+      textarea = document.createElement("textarea");
+      textarea.className = "ldh-mo-dl";
+      textarea.style = "height: 100px; width: 80%;";
+      var br = document.createElement("br");
+      article.insertBefore(br, article.firstChild);
+      article.insertBefore(textarea, article.firstChild);
     }
     textarea.value = imgs.join("\n");
     textarea.select();
-    if (navigator.clipboard) {
-        navigator.clipboard.writeText(imgs.join("\n"));
-    }
-}
-
-function downloadAll(imgs) {
+  }
+  
+  function downloadAll(imgs) {
     // Thanks to https://github.com/y252328/Instagram_Download_Button
     imgs.map((img) =>
-        fetch(img, {
-            headers: new Headers({
-                Origin: window.location.origin,
-            }),
-            mode: "cors",
-        })
-            .then((response) => response.blob())
-            .then((blob) =>
-                dowloadBlob(
-                    window.URL.createObjectURL(blob),
-                    img.substring(img.lastIndexOf("/") + 1)
-                )
-            )
-            .catch((e) => console.error(e))
+      fetch(img, {
+        headers: new Headers({
+          Origin: window.location.origin,
+        }),
+        mode: "cors",
+      })
+        .then((response) => response.blob())
+        .then((blob) =>
+          dowloadBlob(
+            window.URL.createObjectURL(blob),
+            img.substring(img.lastIndexOf("/") + 1)
+          )
+        )
+        .catch((e) => console.error(e))
     );
-}
-
-function dowloadBlob(blob, filename) {
+  }
+  
+  function dowloadBlob(blob, filename) {
     var a = document.createElement("a");
     a.download = filename;
     a.href = blob;
     document.body.appendChild(a);
     a.click();
     a.remove();
-}
+  }
+  
