@@ -22,7 +22,7 @@
    - ![Install User Script on iOS](https://gist.githubusercontent.com/locoda/460ac9d42b05e75df12ef2f80d66c3d2/raw/fac8be9f10e77f61ce138e54632d68984c3391fd/iOS-user-script-install.png)
 3. 【[点击这里](https://www.icloud.com/shortcuts/bbd0e1dc58ed416f912ebb060beea996)】安装配套的iOS快捷指令
 4. 在mo的页面中点击【生成图片链接】按钮，将生成的文本分享至iOS快捷指令中，图片将直接保存到相册
-   - ![iOS Download Demo](https://gist.github.com/locoda/460ac9d42b05e75df12ef2f80d66c3d2/raw/fac8be9f10e77f61ce138e54632d68984c3391fd/iOS-download.gif)
+   - 演示请看【[此处](https://gist.github.com/locoda/460ac9d42b05e75df12ef2f80d66c3d2#file-ios-download-gif)】
 
 ## 安卓端使用方法
 
