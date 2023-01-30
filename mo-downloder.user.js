@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name                mo (LDH) 下载器
 // @namespace           https://1mether.me/
-// @version             0.23
+// @version             0.24
 // @description         在mo的内容页增加图片和视频下载的按钮， 解锁右键功能
 // @author              乙醚(@locoda)
 // @match               http*://m.tribe-m.jp/*
@@ -112,7 +112,10 @@ function injectPerVideoDownloadButton(div) {
     div.querySelectorAll("div.limelight-player").forEach((videoDiv) => {
         var mediaId = videoDiv.id.substring(videoDiv.id.lastIndexOf("_") + 1);
         injectOneButton(videoDiv.parentElement, "下载这个视频", function () {
-            downloadVideo(mediaId);
+            downloadVideo(
+                mediaId,
+                getPrefixFromArticle(div) || getPrefixFromDocument()
+            );
         });
     });
 }
@@ -213,6 +216,7 @@ function downloadImages(imgs, prefix = "") {
 }
 
 function downloadVideo(video, prefix = "") {
+    console.log("downloading " + video + " ...");
     const videoRequestURL =
         "https://production-ps.lvp.llnw.net/r/PlaylistService/media/<mediaId>/getMobilePlaylistByMediaId";
     fetch(videoRequestURL.replace("<mediaId>", video), {
@@ -226,9 +230,11 @@ function downloadVideo(video, prefix = "") {
         .then((response) => response.json())
         .then(
             (response) =>
-                response.mediaList[0].mobileUrls.filter(
-                    (v) => v.targetMediaPlatform == "MobileH264"
-                )[0].mobileUrl
+                response.mediaList[0].mobileUrls.find(
+                    (v) =>
+                        v.targetMediaPlatform == "MobileH264" ||
+                        v.targetMediaPlatform == "Broadband"
+                ).mobileUrl
         )
         .then((mobileUrl) =>
             fetch(mobileUrl.replace("http://", "https://"))
@@ -262,7 +268,20 @@ function getPrefixFromArticle(article) {
         article.querySelector(".article__head") ||
         article.querySelector(".article__header");
     if (candidate) {
-        return (
+        return sanitizeFileName(
+            candidate.textContent
+                .split(/\s/g)
+                .filter((s) => s)
+                .join("_") + "_"
+        );
+    }
+    return "";
+}
+
+function getPrefixFromDocument() {
+    var candidate = document.querySelector(".movie-title-block");
+    if (candidate) {
+        return sanitizeFileName(
             candidate.textContent
                 .split(/\s/g)
                 .filter((s) => s)
