@@ -1,4 +1,4 @@
-# action.yaml
+# build-alook.yaml
 name: "Build Alook Extension"
 
 on:
