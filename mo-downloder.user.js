@@ -10,9 +10,8 @@
 // @match               http*://m.ldhgirls-m.jp/*
 // @icon                https://www.google.com/s2/favicons?sz=64&domain=ldh.co.jp
 // @source              https://github.com/locoda/mo-downloader
-// @updateURL           https://cdn.statically.io/gh/locoda/mo-downloader/main/mo-downloder.user.js
-// @downloadURL         https://cdn.statically.io/gh/locoda/mo-downloader/main/mo-downloder.user.js
-// @grant               none
+// @updateURL           https://github.com/locoda/mo-downloader/raw/main/mo-downloder.user.js
+// @downloadURL         https://github.com/locoda/mo-downloader/raw/main/mo-downloder.user.js
 // @license             MIT
 // ==/UserScript==
 

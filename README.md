@@ -10,18 +10,16 @@
 
 ## 快捷链接
 
-如果你知道什么是用户脚本（油猴脚本）应该就不用看下面的教学了……（下面都是三个安装方式选一个就行哦！不用重复装的）
+如果你知道什么是用户脚本（油猴脚本）应该就不用看下面的教学了……（下面都是安装方式选一个就行哦！）
 
 ### 图片下载器 
 
-【[GreasyFork](https://greasyfork.org/scripts/459051)】【[GitHub](https://github.com/locoda/mo-downloader/raw/main/mo-downloder.user.js)（🪜）】【[Statically](https://cdn.statically.io/gh/locoda/mo-downloader/main/mo-downloder.user.js)】
-
+【[GreasyFork](https://greasyfork.org/scripts/459051)】【[GitHub](https://github.com/locoda/mo-downloader/raw/main/mo-downloder.user.js)（🪜）】
 包括所有功能（解锁图片、下载图片、下载视频）
 
 ### 图片解锁器 
 
-【[GreasyFork](https://greasyfork.org/scripts/459052)】【[GitHub](https://github.com/locoda/mo-downloader/raw/main/mo-img-unlock.user.js) （🪜）】【[Statically](https://cdn.statically.io/gh/locoda/mo-downloader/main/mo-img-unlock.user.js)】
-
+【[GreasyFork](https://greasyfork.org/scripts/459052)】【[GitHub](https://github.com/locoda/mo-downloader/raw/main/mo-img-unlock.user.js) （🪜）】
 仅包括解锁图片功能
 
 ## 电脑端使用方法
