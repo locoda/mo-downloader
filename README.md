@@ -55,4 +55,4 @@
 
 ## 我可能想增加……（Todo/Wishlist）
 
-- [ ] Timeline界面的下载功能
+- [x] Timeline界面的下载功能
