@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name                mo (LDH) 下载器
 // @namespace           https://1mether.me/
-// @version             0.20
+// @version             0.21
 // @description         在mo的内容页增加图片和视频下载的按钮， 解锁右键功能
 // @author              乙醚(@locoda)
 // @match               http*://m.tribe-m.jp/*
@@ -21,12 +21,25 @@
     removeProtectImg();
     // 在详情页注入按钮
     if (window.location.href.includes("detail")) {
-        var imgs = findEligibleImgs();
-        injectDownloadAllButtons(imgs);
+        injectDownloadAllButtons();
     }
     // 根据视频注入按钮
-    if (document.querySelector("div.limelight-player")) {
-        injectPerVideoDownloadButton();
+    if (window.location.href.includes("movie")) {
+        if (document.querySelector("div.limelight-player")) {
+            injectPerVideoDownloadButton(document);
+        }
+    }
+    // 在时间轴界面设置Listener
+    if (window.location.href.includes("timeline")) {
+        // 等待加载scroll
+        (function init() {
+            var counter = document.querySelector("ldh-infinite-scroll");
+            if (counter) {
+                customizedTimelinePage();
+            } else {
+                setTimeout(init, 300);
+            }
+        })();
     }
 })();
 
@@ -41,57 +54,29 @@ function removeProtectImg() {
         .forEach((node) => node.classList.remove("protectimg"));
 }
 
-function findEligibleImgs() {
+function findEligibleImgs(article) {
     const keywords = ["uplcmn", "upload"];
-    return Array.from(document.querySelectorAll("article img"))
+    return Array.from(article.querySelectorAll("img"))
         .map((img) => img.src)
         .filter((img) => keywords.some((k) => img.includes(k)));
 }
 
-function injectDownloadAllButtons(imgs) {
+function injectDownloadAllButtons() {
     var article = document.querySelector("article");
     if (article.classList.contains("article--news")) {
         // 新闻页面特殊处理
         article = article.querySelector(".article__body");
     }
-    // 注入按钮 div
-    var buttonsDiv = document.createElement("div");
-    buttonsDiv.className = "ldh-mo-dl";
-    buttonsDiv.style = "margin-top: 0.4em; margin-bottom: 0.4em;";
-    article.insertBefore(buttonsDiv, article.firstChild);
-    // 图片链接生成按钮
-    const isMobile = () =>
-        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-            navigator.userAgent
-        );
-    if (isMobile()) {
-        injectOneButton(buttonsDiv, "生成图片链接", function () {
-            generateOnClickHandler(imgs);
-        });
-    }
-    // 图片下载按钮
-    injectOneButton(
-        buttonsDiv,
-        "下载所有图片 (" + imgs.length + ")",
-        function () {
-            downloadOnClickHandler(imgs);
-        }
-    );
-    // 视频下载按钮
-    if (document.querySelector("div.limelight-player")) {
-        injectOneButton(buttonsDiv, "下载所有视频", function () {
-            downloadVideoOnClickHandler();
-        });
-    }
+    attachButtonToArticle(article);
 }
 
-function injectPerVideoDownloadButton(){
-    document.querySelectorAll("div.limelight-player").forEach(videoDiv => {
-        var mediaId = videoDiv.id.substring(videoDiv.id.lastIndexOf("_") + 1)
+function injectPerVideoDownloadButton(div) {
+    div.querySelectorAll("div.limelight-player").forEach((videoDiv) => {
+        var mediaId = videoDiv.id.substring(videoDiv.id.lastIndexOf("_") + 1);
         injectOneButton(videoDiv.parentElement, "下载这个视频", function () {
             downloadVideo(mediaId);
-        })
-    })
+        });
+    });
 }
 
 function injectOneButton(element, textOnButton, clickListener) {
@@ -125,8 +110,8 @@ function generateOnClickHandler(imgs) {
     textarea.select();
 }
 
-function downloadVideoOnClickHandler() {
-    var elems = document.querySelectorAll("script");
+function downloadVideoOnClickHandler(artile) {
+    var elems = artile.querySelectorAll("script");
     var videos = Array.from(elems)
         .filter(
             (v) =>
@@ -143,7 +128,57 @@ function downloadVideoOnClickHandler() {
                 ).mediaId
         );
     console.log(videos);
-    videos.map(video => downloadVideo(video));
+    videos.map((video) => downloadVideo(video));
+}
+
+function customizedTimelinePage() {
+    // 初始化
+    document.querySelectorAll("ldh-infinite-scroll article").forEach(article => attachButtonToArticle(article))
+    //
+    const infiniteScrollContainer = document.querySelector("ldh-infinite-scroll");
+    const config = { childList: true };
+    const observer = new MutationObserver(function (mutations, observer) {
+        var nodes = mutations.find((r) =>
+            Array.from(r.addedNodes).filter((n) => (n.className = "article"))
+        ).addedNodes;
+        nodes.forEach(node => attachButtonToArticle(node.querySelector('article')))
+        removeProtectImg();
+    });
+    observer.observe(infiniteScrollContainer, config);
+}
+
+function attachButtonToArticle(article) {
+    var imgs = findEligibleImgs(article);
+    // 注入按钮 div
+    var buttonsDiv = document.createElement("div");
+    buttonsDiv.className = "ldh-mo-dl";
+    buttonsDiv.style = "margin-top: 0.4em; margin-bottom: 0.4em;";
+    article.insertBefore(buttonsDiv, article.firstChild);
+    // 图片链接生成按钮
+    const isMobile = () =>
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+            navigator.userAgent
+        );
+    if (isMobile()) {
+        injectOneButton(buttonsDiv, "生成图片链接", function () {
+            generateOnClickHandler(imgs);
+        });
+    }
+    // 图片下载按钮
+    injectOneButton(
+        buttonsDiv,
+        "下载所有图片 (" + imgs.length + ")",
+        function () {
+            downloadOnClickHandler(imgs);
+        }
+    );
+    // 视频下载按钮
+    if (article.querySelector("div.limelight-player")) {
+        injectOneButton(buttonsDiv, "下载所有视频", function () {
+            downloadVideoOnClickHandler(article);
+        });
+        injectPerVideoDownloadButton(article);
+    }
 }
 
 function downloadAll(imgs) {
@@ -196,8 +231,7 @@ function downloadVideo(video) {
                     );
                 })
                 .catch((e) => console.error(e))
-        )
-        ;
+        );
 }
 
 function dowloadBlob(blob, filename) {
