@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name                mo (LDH) 下载器
 // @namespace           https://1mether.me/
-// @version             0.22
+// @version             0.23
 // @description         在mo的内容页增加图片和视频下载的按钮， 解锁右键功能
 // @author              乙醚(@locoda)
 // @match               http*://m.tribe-m.jp/*
@@ -54,12 +54,9 @@ function removeProtectImg() {
         .forEach((node) => node.classList.remove("protectimg"));
 }
 
-function findEligibleImgs(article) {
-    const keywords = ["uplcmn", "upload"];
-    return Array.from(article.querySelectorAll("img"))
-        .map((img) => img.src)
-        .filter((img) => keywords.some((k) => img.includes(k)));
-}
+// ================================
+// =    Button Injection Utils    =
+// ================================
 
 function injectDownloadAllButtons() {
     var article = document.querySelector("article");
@@ -68,6 +65,13 @@ function injectDownloadAllButtons() {
         article = article.querySelector(".article__body");
     }
     attachButtonToArticle(article);
+}
+
+function findEligibleImgs(article) {
+    const keywords = ["uplcmn", "upload"];
+    return Array.from(article.querySelectorAll("img"))
+        .map((img) => img.src)
+        .filter((img) => keywords.some((k) => img.includes(k)));
 }
 
 function attachButtonToArticle(article) {
@@ -84,7 +88,7 @@ function attachButtonToArticle(article) {
         );
     if (isMobile()) {
         injectOneButton(buttonsDiv, "生成图片链接", function () {
-            generateOnClickHandler(buttonsDiv, imgs);
+            generateOnClickHandler(buttonsDiv, article);
         });
     }
     // 图片下载按钮
@@ -92,7 +96,7 @@ function attachButtonToArticle(article) {
         buttonsDiv,
         "下载所有图片 (" + imgs.length + ")",
         function () {
-            downloadOnClickHandler(imgs);
+            downloadOnClickHandler(article);
         }
     );
     // 视频下载按钮
@@ -123,28 +127,27 @@ function injectOneButton(element, textOnButton, clickListener) {
     element.appendChild(btn);
 }
 
-function downloadOnClickHandler(imgs) {
-    console.log(imgs);
-    downloadAll(imgs);
+function downloadOnClickHandler(article) {
+    downloadImages(findEligibleImgs(article), getPrefixFromArticle(article));
 }
 
-function generateOnClickHandler(article, imgs) {
-    console.log(imgs);
-    var textarea = article.querySelector("textarea.ldh-mo-dl");
+function generateOnClickHandler(buttonsDiv, article) {
+    var imgs = findEligibleImgs(article);
+    var textarea = buttonsDiv.querySelector("textarea.ldh-mo-dl");
     if (!textarea) {
         textarea = document.createElement("textarea");
         textarea.className = "ldh-mo-dl";
         textarea.style = "height: 100px; width: 80%;";
         var br = document.createElement("br");
-        article.insertBefore(br, article.firstChild);
-        article.insertBefore(textarea, article.firstChild);
+        buttonsDiv.insertBefore(br, buttonsDiv.firstChild);
+        buttonsDiv.insertBefore(textarea, buttonsDiv.firstChild);
     }
     textarea.value = imgs.join("\n");
     textarea.select();
 }
 
-function downloadVideoOnClickHandler(artile) {
-    var elems = artile.querySelectorAll("script");
+function downloadVideoOnClickHandler(article) {
+    var elems = article.querySelectorAll("script");
     var videos = Array.from(elems)
         .filter(
             (v) =>
@@ -160,8 +163,8 @@ function downloadVideoOnClickHandler(artile) {
                     )
                 ).mediaId
         );
-    console.log(videos);
-    videos.map((video) => downloadVideo(video));
+
+    videos.map((video) => downloadVideo(video, getPrefixFromArticle(article)));
 }
 
 function customizedTimelinePage() {
@@ -184,7 +187,11 @@ function customizedTimelinePage() {
     observer.observe(infiniteScrollContainer, config);
 }
 
-function downloadAll(imgs) {
+// ========================
+// =    Download Utils    =
+// ========================
+
+function downloadImages(imgs, prefix = "") {
     // Thanks to https://github.com/y252328/Instagram_Download_Button
     imgs.map((img) =>
         fetch(img, {
@@ -198,14 +205,14 @@ function downloadAll(imgs) {
             .then((blob) =>
                 dowloadBlob(
                     window.URL.createObjectURL(blob),
-                    img.substring(img.lastIndexOf("/") + 1)
+                    prefix + img.substring(img.lastIndexOf("/") + 1)
                 )
             )
             .catch((e) => console.error(e))
     );
 }
 
-function downloadVideo(video) {
+function downloadVideo(video, prefix = "") {
     const videoRequestURL =
         "https://production-ps.lvp.llnw.net/r/PlaylistService/media/<mediaId>/getMobilePlaylistByMediaId";
     fetch(videoRequestURL.replace("<mediaId>", video), {
@@ -230,7 +237,7 @@ function downloadVideo(video) {
                     let tempName = mobileUrl.replace("/root-message-cxf-apache", "");
                     dowloadBlob(
                         window.URL.createObjectURL(blob),
-                        tempName.substring(tempName.lastIndexOf("/") + 1)
+                        prefix + tempName.substring(tempName.lastIndexOf("/") + 1)
                     );
                 })
                 .catch((e) => console.error(e))
@@ -244,4 +251,37 @@ function dowloadBlob(blob, filename) {
     document.body.appendChild(a);
     a.click();
     a.remove();
+}
+
+// ======================
+// =    Naming Utils    =
+// ======================
+
+function getPrefixFromArticle(article) {
+    var candidate =
+        article.querySelector(".article__head") ||
+        article.querySelector(".article__header");
+    if (candidate) {
+        return (
+            candidate.textContent
+                .split(/\s/g)
+                .filter((s) => s)
+                .join("_") + "_"
+        );
+    }
+    return "";
+}
+
+function sanitizeFileName(input, replacement = "_") {
+    const illegalRe = /[\/\?<>\\:\*\|"]/g;
+    const controlRe = /[\x00-\x1f\x80-\x9f]/g;
+    const reservedRe = /^\.+$/;
+    const windowsReservedRe = /^(con|prn|aux|nul|com[0-9]|lpt[0-9])(\..*)?$/i;
+    const windowsTrailingRe = /[\. ]+$/;
+    return input
+        .replace(illegalRe, replacement)
+        .replace(controlRe, replacement)
+        .replace(reservedRe, replacement)
+        .replace(windowsReservedRe, replacement)
+        .replace(windowsTrailingRe, replacement);
 }
