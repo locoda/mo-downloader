@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name                mo (LDH) 下载器
 // @namespace           https://1mether.me/
-// @version             0.21
+// @version             0.22
 // @description         在mo的内容页增加图片和视频下载的按钮， 解锁右键功能
 // @author              乙醚(@locoda)
 // @match               http*://m.tribe-m.jp/*
@@ -70,6 +70,40 @@ function injectDownloadAllButtons() {
     attachButtonToArticle(article);
 }
 
+function attachButtonToArticle(article) {
+    var imgs = findEligibleImgs(article);
+    // 注入按钮 div
+    var buttonsDiv = document.createElement("div");
+    buttonsDiv.className = "ldh-mo-dl";
+    buttonsDiv.style = "margin-top: 0.4em; margin-bottom: 0.4em;";
+    article.insertBefore(buttonsDiv, article.firstChild);
+    // 图片链接生成按钮
+    const isMobile = () =>
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+            navigator.userAgent
+        );
+    if (isMobile()) {
+        injectOneButton(buttonsDiv, "生成图片链接", function () {
+            generateOnClickHandler(buttonsDiv, imgs);
+        });
+    }
+    // 图片下载按钮
+    injectOneButton(
+        buttonsDiv,
+        "下载所有图片 (" + imgs.length + ")",
+        function () {
+            downloadOnClickHandler(imgs);
+        }
+    );
+    // 视频下载按钮
+    if (article.querySelector("div.limelight-player")) {
+        injectOneButton(buttonsDiv, "下载所有视频", function () {
+            downloadVideoOnClickHandler(article);
+        });
+        injectPerVideoDownloadButton(article);
+    }
+}
+
 function injectPerVideoDownloadButton(div) {
     div.querySelectorAll("div.limelight-player").forEach((videoDiv) => {
         var mediaId = videoDiv.id.substring(videoDiv.id.lastIndexOf("_") + 1);
@@ -94,10 +128,9 @@ function downloadOnClickHandler(imgs) {
     downloadAll(imgs);
 }
 
-function generateOnClickHandler(imgs) {
+function generateOnClickHandler(article, imgs) {
     console.log(imgs);
-    var article = document.querySelector("article");
-    var textarea = document.querySelector("textarea.ldh-mo-dl");
+    var textarea = article.querySelector("textarea.ldh-mo-dl");
     if (!textarea) {
         textarea = document.createElement("textarea");
         textarea.className = "ldh-mo-dl";
@@ -133,7 +166,9 @@ function downloadVideoOnClickHandler(artile) {
 
 function customizedTimelinePage() {
     // 初始化
-    document.querySelectorAll("ldh-infinite-scroll article").forEach(article => attachButtonToArticle(article))
+    document
+        .querySelectorAll("ldh-infinite-scroll article")
+        .forEach((article) => attachButtonToArticle(article));
     //
     const infiniteScrollContainer = document.querySelector("ldh-infinite-scroll");
     const config = { childList: true };
@@ -141,44 +176,12 @@ function customizedTimelinePage() {
         var nodes = mutations.find((r) =>
             Array.from(r.addedNodes).filter((n) => (n.className = "article"))
         ).addedNodes;
-        nodes.forEach(node => attachButtonToArticle(node.querySelector('article')))
+        nodes.forEach((node) =>
+            attachButtonToArticle(node.querySelector("article"))
+        );
         removeProtectImg();
     });
     observer.observe(infiniteScrollContainer, config);
-}
-
-function attachButtonToArticle(article) {
-    var imgs = findEligibleImgs(article);
-    // 注入按钮 div
-    var buttonsDiv = document.createElement("div");
-    buttonsDiv.className = "ldh-mo-dl";
-    buttonsDiv.style = "margin-top: 0.4em; margin-bottom: 0.4em;";
-    article.insertBefore(buttonsDiv, article.firstChild);
-    // 图片链接生成按钮
-    const isMobile = () =>
-        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-            navigator.userAgent
-        );
-    if (isMobile()) {
-        injectOneButton(buttonsDiv, "生成图片链接", function () {
-            generateOnClickHandler(imgs);
-        });
-    }
-    // 图片下载按钮
-    injectOneButton(
-        buttonsDiv,
-        "下载所有图片 (" + imgs.length + ")",
-        function () {
-            downloadOnClickHandler(imgs);
-        }
-    );
-    // 视频下载按钮
-    if (article.querySelector("div.limelight-player")) {
-        injectOneButton(buttonsDiv, "下载所有视频", function () {
-            downloadVideoOnClickHandler(article);
-        });
-        injectPerVideoDownloadButton(article);
-    }
 }
 
 function downloadAll(imgs) {
