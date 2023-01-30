@@ -1,5 +1,7 @@
 # mo (LDH) 图片下载脚本/图片解锁脚本
 
+【[GitHub主页](https://github.com/locoda/mo-downloader)】【[作者微博](https://weibo.com/locoda)⬅️反馈】
+
 ## 功能
 
 解锁mo页面右键限制、解锁图片下载保存限制
