@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name                mo (LDH) 图片解锁器
 // @namespace           https://1mether.me/
-// @version             0.5
+// @version             0.6
 // @description         解锁mo页面图片右键功能
 // @author              乙醚(@locoda)
 // @match               http*://m.tribe-m.jp/*
@@ -26,4 +26,16 @@
     document
         .querySelectorAll(".protectimg")
         .forEach((node) => node.classList.remove("protectimg"));
+    // 监控 DOM 变化
+    var observer = new MutationObserver(function (mutations, observer) {
+        console.log(mutations)
+        // 如果有变化再移除protectimg限制
+        document
+            .querySelectorAll(".protectimg")
+            .forEach((node) => node.classList.remove("protectimg"));
+    });
+    observer.observe(document, {
+        subtree: true,
+        childList: true,
+    });
 })();
