@@ -292,6 +292,7 @@ function getPrefixFromDocument() {
 }
 
 function sanitizeFileName(input, replacement = "_") {
+    // Thanks to https://github.com/parshap/node-sanitize-filename/blob/master/index.js
     const illegalRe = /[\/\?<>\\:\*\|"]/g;
     const controlRe = /[\x00-\x1f\x80-\x9f]/g;
     const reservedRe = /^\.+$/;
