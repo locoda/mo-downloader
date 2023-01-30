@@ -39,7 +39,7 @@
    - （Safari用户）我使用的是Stay（[AppStore](https://apps.apple.com/cn/app/stay-%E7%BD%91%E9%A1%B5%E7%BA%AF%E6%B5%8F%E8%A7%88/id1591620171)）（[GitHub](https://github.com/shenruisi/Stay)）
      - 安装后请打开Stay按照软件内提示设置
    - （Alook用户）请下载【[这个文件](https://cdn.statically.io/gh/locoda/mo-downloader/main/mo-downloader.alook)】，在下载管理中点击文件【添加扩展】后，直接前往3
-     - 请注意，Alook扩展无法自动更新，重新安装前请在【设置-自定义设置-JavaScript扩展】中删除原本的【mo下载器】文件
+     - 请注意，Alook扩展无法自动更新，草重新安装前请在【设置-自定义设置-JavaScript扩展】中删除原本的【mo下载器】文件
 2. 前往【[GreasyFork](https://greasyfork.org/scripts/459051)】安装最新版的用户脚本
    - 如图所示：点击下方安装、点击右上角创建或保存、确认脚本存在
    - ![Install User Script on iOS](https://cdn.statically.io/gh/locoda/mo-downloader/main/demos/iOS-user-script-install.png)
@@ -57,4 +57,5 @@
 
 - [x] ~Timeline界面的下载功能~ 已实现（视频需要额外点击……）
 - [x] ~文件重命名（改为非乱码）~ 基本实现（除去Timeline界面视频）
+- [ ] 高清视频下载（或许可以参考[这个Bilibili脚本](https://greasyfork.org/scripts/413228)）
 - [ ] 支持FC（？）
