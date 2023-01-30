@@ -1,10 +1,8 @@
 // ==UserScript==
-// @name                mo (LDH) Downloader
-// @name:zh-CN          mo (LDH) 下载器
+// @name                mo (LDH) 下载器
 // @namespace           https://1mether.me/
-// @version             0.18
-// @description         Add download button for downloading ALL images/videos from LDH mo details page
-// @description:zh-CN   在mo的内容页增加下载和复制图片链接的按钮，用于批量下载页面图片或视频
+// @version             0.20
+// @description         在mo的内容页增加图片和视频下载的按钮， 解锁右键功能
 // @author              乙醚(@locoda)
 // @match               http*://m.tribe-m.jp/*
 // @match               http*://m.ex-m.jp/*

@@ -1,10 +1,8 @@
 // ==UserScript==
-// @name                mo (LDH) Images Limitation Remover
-// @name:zh-CN          mo (LDH) 图片解锁器
+// @name                mo (LDH) 图片解锁器
 // @namespace           https://1mether.me/
-// @version             0.4
-// @description         Remove "protectimg" from the page
-// @description:zh-CN   移除页面中的"protectimg"元素
+// @version             0.5
+// @description         解锁mo页面图片右键功能
 // @author              乙醚(@locoda)
 // @match               http*://m.tribe-m.jp/*
 // @match               http*://m.ex-m.jp/*
