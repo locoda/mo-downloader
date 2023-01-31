@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name                mo (LDH) 下载器
 // @namespace           https://1mether.me/
-// @version             0.28
+// @version             0.29
 // @description         在mo的内容页增加图片和视频下载的按钮， 解锁右键功能
 // @author              乙醚(@locoda)
 // @match               http*://m.tribe-m.jp/*
@@ -22,9 +22,10 @@
     // ================
 
     const isMobile = () =>
-    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-        navigator.userAgent
-    );
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+            navigator.userAgent
+        );
+        
     const keywords = ["uplcmn", "upload"];
 
     // ==============
@@ -275,27 +276,10 @@
         })
             .then((response) => response.json())
             .then((response) => {
-                if (isMobile()) {
-                    let mobileUrl = response.mediaList[0].mobileUrls.find(
-                        (v) =>
-                            v.targetMediaPlatform == "MobileH264" ||
-                            v.targetMediaPlatform == "Broadband"
-                    ).mobileUrl;
-                    fetch(mobileUrl.replace("http://", "https://"))
-                        .then((response) => response.blob())
-                        .then((blob) => {
-                            dowloadBlob(
-                                window.URL.createObjectURL(blob),
-                                prefix + getFilenameFromVideoUrl(mobileUrl)
-                            );
-                        })
-                        .catch((e) => console.error(e));
-                } else {
-                    let m3u8Url = response.mediaList[0].mobileUrls.find(
-                        (v) => v.targetMediaPlatform == "HttpLiveStreaming"
-                    ).mobileUrl;
-                    openM3U8ToolBox(m3u8Url, prefix + getFilenameFromVideoUrl(m3u8Url));
-                }
+                let m3u8Url = response.mediaList[0].mobileUrls.find(
+                    (v) => v.targetMediaPlatform == "HttpLiveStreaming"
+                ).mobileUrl;
+                openM3U8ToolBox(m3u8Url, prefix + getFilenameFromVideoUrl(m3u8Url));
             });
     }
 
@@ -310,12 +294,21 @@
 
     function openM3U8ToolBox(m3u8Url, filename) {
         // 打开 https://tools.thatwind.com/tool/m3u8downloader
-        var a = document.createElement("a");
-        a.target = "_blank";
-        a.href = constructM3U8ToolBoxURL(m3u8Url, filename);
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
+        if (isMobile()) {
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(
+                    constructM3U8ToolBoxURL(m3u8Url, filename)
+                );
+            }
+            moDownloadermessage("下载链接已复制到剪贴板，请前往下载");
+        } else {
+            var a = document.createElement("a");
+            a.target = "_blank";
+            a.href = constructM3U8ToolBoxURL(m3u8Url, filename);
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        }
     }
 
     function constructM3U8ToolBoxURL(m3u8Url, filename) {
@@ -365,7 +358,9 @@
 
     function getFilenameFromVideoUrl(url) {
         let tempName = url.replace("/root-message-cxf-apache", "");
-        tempName = tempName.substring(tempName.lastIndexOf("/") + 1).replace(".m3u8", ".ts");
+        tempName = tempName
+            .substring(tempName.lastIndexOf("/") + 1)
+            .replace(".m3u8", ".ts");
         return tempName;
     }
 
@@ -394,5 +389,24 @@
 
     function moDownloaderDebug(msg) {
         console.debug("[mo-downloder] " + msg);
+    }
+
+    function moDownloadermessage(text, disappearTime = 5000) {
+        let p = document.querySelector("#mo-downloader-message");
+        if (!p) {
+            p = document.createElement("div");
+            p.id = "mo-downloader-message";
+            p.style =
+                "position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; align-items: end; z-index: 999999999999999;";
+            (document.body || document.documentElement).appendChild(p);
+        }
+        let mdiv = document.createElement("div");
+        mdiv.innerText = text;
+        mdiv.style =
+            "padding: 3px 8px; border-radius: 5px; background: black; box-shadow: #000 1px 2px 5px; margin-top: 10px; font-size: small; color: #fff; text-align: right;";
+        p.appendChild(mdiv);
+        setTimeout(() => {
+            p.removeChild(mdiv);
+        }, disappearTime);
     }
 })();
