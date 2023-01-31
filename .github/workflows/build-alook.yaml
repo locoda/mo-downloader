@@ -3,6 +3,8 @@ name: "Build Alook Extension"
 
 on:
   push:
+    branches:
+      - main
     paths:
       - "**.user.js"
   workflow_dispatch:
