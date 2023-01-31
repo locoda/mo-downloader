@@ -65,4 +65,5 @@
 - [x] ~Timeline界面的下载功能~ 已实现（视频需要额外点击……）
 - [x] ~文件重命名（改为非乱码）~ 基本实现（除去Timeline界面视频）
 - [x] ~高清视频下载（或许可以参考[这个Bilibili脚本](https://greasyfork.org/scripts/413228)）~ 使用m3u8 toolbox
+- [ ] 简单的墙内可访问主页和demo
 - [ ] 支持FC（？）
