@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name                mo (LDH) 下载器
 // @namespace           https://1mether.me/
-// @version             0.29
+// @version             0.30
 // @description         在mo的内容页增加图片和视频下载的按钮， 解锁右键功能
 // @author              乙醚(@locoda)
 // @match               http*://m.tribe-m.jp/*
@@ -25,7 +25,7 @@
         /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
             navigator.userAgent
         );
-        
+
     const keywords = ["uplcmn", "upload"];
 
     // ==============
@@ -123,9 +123,6 @@
             article.querySelector("div.limelight-player") ||
             article.querySelector("a.popup_link")
         ) {
-            // injectOneButton(buttonsDiv, "下载所有视频", function () {
-            //     downloadVideoOnClickHandler(article);
-            // });
             // List View 视频
             injectPerVideoDownloadButton(article);
             // Timeline 视频
@@ -138,8 +135,9 @@
         div.querySelectorAll("div.limelight-player").forEach((videoDiv) => {
             var mediaId = videoDiv.id.substring(videoDiv.id.lastIndexOf("_") + 1);
             moDownloaderDebug("正在下载视频： " + mediaId);
-            injectOneButton(videoDiv.parentElement, "下载视频", function () {
+            injectOneButton(videoDiv.parentElement, "下载视频", function (event) {
                 downloadVideo(
+                    event.target,
                     mediaId,
                     getPrefixFromArticle(div) || getPrefixFromDocument()
                 );
@@ -154,8 +152,9 @@
                 .split("movie/")[1]
                 .split("/")[0];
             moDownloaderDebug("正在下载视频： " + mediaId);
-            injectOneButton(videoDiv.parentElement, "下载视频", function () {
+            injectOneButton(videoDiv.parentElement, "下载视频", function (event) {
                 downloadVideo(
+                    event.target,
                     mediaId,
                     getPrefixFromArticle(div) || getPrefixFromDocument()
                 );
@@ -190,27 +189,6 @@
         }
         textarea.value = imgs.join("\n");
         textarea.select();
-    }
-
-    function downloadVideoOnClickHandler(article) {
-        var elems = article.querySelectorAll("script");
-        var videos = Array.from(elems)
-            .filter(
-                (v) =>
-                    v.textContent.includes("mediaId") &&
-                    !v.textContent.includes("blogTalkData")
-            )
-            .map(
-                (v) =>
-                    JSON.parse(
-                        v.textContent.substring(
-                            v.textContent.indexOf("(") + 1,
-                            v.textContent.lastIndexOf(")")
-                        )
-                    ).mediaId
-            );
-
-        videos.map((video) => downloadVideo(video, getPrefixFromArticle(article)));
     }
 
     function customizedTimelinePage() {
@@ -263,7 +241,7 @@
         );
     }
 
-    function downloadVideo(video, prefix = "") {
+    function downloadVideo(button, video, prefix = "") {
         const videoRequestURL =
             "https://production-ps.lvp.llnw.net/r/PlaylistService/media/<mediaId>/getMobilePlaylistByMediaId";
         fetch(videoRequestURL.replace("<mediaId>", video), {
@@ -279,7 +257,11 @@
                 let m3u8Url = response.mediaList[0].mobileUrls.find(
                     (v) => v.targetMediaPlatform == "HttpLiveStreaming"
                 ).mobileUrl;
-                openM3U8ToolBox(m3u8Url, prefix + getFilenameFromVideoUrl(m3u8Url));
+                openM3U8ToolBox(
+                    button,
+                    m3u8Url,
+                    prefix + getFilenameFromVideoUrl(m3u8Url)
+                );
             });
     }
 
@@ -292,15 +274,21 @@
         a.remove();
     }
 
-    function openM3U8ToolBox(m3u8Url, filename) {
+    function openM3U8ToolBox(button, m3u8Url, filename) {
         // 打开 https://tools.thatwind.com/tool/m3u8downloader
         if (isMobile()) {
-            if (navigator.clipboard) {
-                navigator.clipboard.writeText(
-                    constructM3U8ToolBoxURL(m3u8Url, filename)
-                );
+            let id = btoa(encodeURIComponent(filename));
+            var a = button.parentElement.querySelector("a.mo-downloader");
+            if (!a) {
+                var a = document.createElement("a");
+                var aText = document.createTextNode("点击打开下载页面");
+                a.className = 'mo-downloader';
+                a.append(aText);
+                a.target = "_blank";
+                a.href = constructM3U8ToolBoxURL(m3u8Url, filename);
+                button.parentElement.appendChild(document.createElement("br"));
+                button.parentElement.appendChild(a);
             }
-            moDownloadermessage("下载链接已复制到剪贴板，请前往下载");
         } else {
             var a = document.createElement("a");
             a.target = "_blank";
