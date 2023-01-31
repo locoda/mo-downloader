@@ -58,7 +58,7 @@
 
 - 如图所示：m3u8链接自动填入、点击选择源（通常最后两个是高清源）、点击选择保存目录、下载
 - ![How to use m3u8 Toolbox](https://mo-downloader.pages.dev/demos/chrome-m3u8.png)
-  - 目前发现这个工具下载的视频有点小问题，如果有使用ffmpeg的话可以 `ffmpeg -i <in.ts/.mp4> -c copy -dn -bsf:a aac_adtstoasc <out.mp4>` 生成常规视频……（暂时没有找到其他方法无损地做这件事）（但是大家应该也有用ts档所以还好吧……）
+  - 目前发现这个工具下载的视频有点小问题，如果有使用ffmpeg的话可以 `ffmpeg -i <in.ts/.mp4> -map 0 -c copy -dn -bsf:a aac_adtstoasc <out.mp4>` 生成常规视频……（暂时没有找到其他方法无损地做这件事）（但是大家应该也有用ts档所以还好吧……）
 
 ## 我可能想增加……（Todo/Wishlist）
 
