@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name                mo (LDH) 下载器
 // @namespace           https://1mether.me/
-// @version             0.25
+// @version             0.26
 // @description         在mo的内容页增加图片和视频下载的按钮， 解锁右键功能
 // @author              乙醚(@locoda)
 // @match               http*://m.tribe-m.jp/*
@@ -52,6 +52,7 @@ function removeProtectImg() {
     document
         .querySelectorAll(".protectimg")
         .forEach((node) => node.classList.remove("protectimg"));
+    moDownloaderLog("移除右键限制")
 }
 
 // ================================
@@ -113,11 +114,13 @@ function attachButtonToArticle(article) {
         // Timeline 视频
         injectPerVideoDownloadButtonForTimeline(article);
     }
+    moDownloaderLog("注入按钮")
 }
 
 function injectPerVideoDownloadButton(div) {
     div.querySelectorAll("div.limelight-player").forEach((videoDiv) => {
         var mediaId = videoDiv.id.substring(videoDiv.id.lastIndexOf("_") + 1);
+        moDownloaderDebug("正在下载视频： " + mediaId)
         injectOneButton(videoDiv.parentElement, "下载视频", function () {
             downloadVideo(
                 mediaId,
@@ -130,6 +133,7 @@ function injectPerVideoDownloadButton(div) {
 function injectPerVideoDownloadButtonForTimeline(div) {
     div.querySelectorAll("a.popup_link").forEach((videoDiv) => {
         var mediaId = videoDiv.getAttribute('onclick').split('movie/')[1].split('/')[0]
+        moDownloaderDebug("正在下载视频： " + mediaId)
         injectOneButton(videoDiv.parentElement, "下载视频", function () {
             downloadVideo(
                 mediaId,
@@ -206,8 +210,10 @@ function customizedTimelinePage() {
             attachButtonToArticle(node.querySelector("article"))
         );
         removeProtectImg();
+        moDownloaderDebug("正在图片视频： ")
     });
     observer.observe(infiniteScrollContainer, config);
+    moDownloaderLog("Timeline页面注入按钮")
 }
 
 // ========================
@@ -215,6 +221,7 @@ function customizedTimelinePage() {
 // ========================
 
 function downloadImages(imgs, prefix = "") {
+    moDownloaderDebug("正在图片视频： " + imgs)
     // Thanks to https://github.com/y252328/Instagram_Download_Button
     imgs.map((img) =>
         fetch(img, {
@@ -236,7 +243,6 @@ function downloadImages(imgs, prefix = "") {
 }
 
 function downloadVideo(video, prefix = "") {
-    console.log("Downloading " + video + " ...");
     const videoRequestURL =
         "https://production-ps.lvp.llnw.net/r/PlaylistService/media/<mediaId>/getMobilePlaylistByMediaId";
     fetch(videoRequestURL.replace("<mediaId>", video), {
@@ -292,7 +298,7 @@ function constructM3U8ToolBoxURL(m3u8Url, filename) {
         encodeURIComponent(window.location.href) +
         "&filename=" +
         filename;
-    console.log(url);
+    moDownloaderDebug(url);
     return url;
 }
 
@@ -341,4 +347,19 @@ function sanitizeFileName(input, replacement = "_") {
         .replace(reservedRe, replacement)
         .replace(windowsReservedRe, replacement)
         .replace(windowsTrailingRe, replacement);
+}
+
+// =======================
+// =    Logging Utils    =
+// =======================
+function moDownloaderLog(msg) {
+    console.log(
+        '[mo-downloder][' + moDownloaderLog.caller.name + '] ' + msg
+    )
+}
+
+function moDownloaderDebug(msg) {
+    console.debug(
+        '[mo-downloder][' + moDownloaderDebug.caller.name + '] ' + msg
+    )
 }
