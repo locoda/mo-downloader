@@ -365,7 +365,7 @@
 
     function getFilenameFromVideoUrl(url) {
         let tempName = url.replace("/root-message-cxf-apache", "");
-        tempName = tempName.substring(tempName.lastIndexOf("/") + 1).replace(".m3u8", ".mp4");
+        tempName = tempName.substring(tempName.lastIndexOf("/") + 1).replace(".m3u8", ".ts");
         return tempName;
     }
 
