@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name                mo (LDH) 下载器
 // @namespace           https://1mether.me/
-// @version             0.24
+// @version             0.25
 // @description         在mo的内容页增加图片和视频下载的按钮， 解锁右键功能
 // @author              乙醚(@locoda)
 // @match               http*://m.tribe-m.jp/*
@@ -90,28 +90,35 @@ function attachButtonToArticle(article) {
         injectOneButton(buttonsDiv, "生成图片链接", function () {
             generateOnClickHandler(buttonsDiv, article);
         });
+    } else {
+        // 图片下载按钮
+        injectOneButton(
+            buttonsDiv,
+            "下载所有图片 (" + imgs.length + ")",
+            function () {
+                downloadOnClickHandler(article);
+            }
+        );
     }
-    // 图片下载按钮
-    injectOneButton(
-        buttonsDiv,
-        "下载所有图片 (" + imgs.length + ")",
-        function () {
-            downloadOnClickHandler(article);
-        }
-    );
     // 视频下载按钮
-    if (article.querySelector("div.limelight-player")) {
-        injectOneButton(buttonsDiv, "下载所有视频", function () {
-            downloadVideoOnClickHandler(article);
-        });
+    if (
+        article.querySelector("div.limelight-player") ||
+        article.querySelector("a.popup_link")
+    ) {
+        // injectOneButton(buttonsDiv, "下载所有视频", function () {
+        //     downloadVideoOnClickHandler(article);
+        // });
+        // List View 视频
         injectPerVideoDownloadButton(article);
+        // Timeline 视频
+        injectPerVideoDownloadButtonForTimeline(article);
     }
 }
 
 function injectPerVideoDownloadButton(div) {
     div.querySelectorAll("div.limelight-player").forEach((videoDiv) => {
         var mediaId = videoDiv.id.substring(videoDiv.id.lastIndexOf("_") + 1);
-        injectOneButton(videoDiv.parentElement, "下载这个视频", function () {
+        injectOneButton(videoDiv.parentElement, "下载视频", function () {
             downloadVideo(
                 mediaId,
                 getPrefixFromArticle(div) || getPrefixFromDocument()
@@ -119,6 +126,19 @@ function injectPerVideoDownloadButton(div) {
         });
     });
 }
+
+function injectPerVideoDownloadButtonForTimeline(div) {
+    div.querySelectorAll("a.popup_link").forEach((videoDiv) => {
+        var mediaId = videoDiv.getAttribute('onclick').split('movie/')[1].split('/')[0]
+        injectOneButton(videoDiv.parentElement, "下载视频", function () {
+            downloadVideo(
+                mediaId,
+                getPrefixFromArticle(div) || getPrefixFromDocument()
+            );
+        });
+    });
+}
+
 
 function injectOneButton(element, textOnButton, clickListener) {
     var btn = document.createElement("BUTTON");
@@ -216,7 +236,7 @@ function downloadImages(imgs, prefix = "") {
 }
 
 function downloadVideo(video, prefix = "") {
-    console.log("downloading " + video + " ...");
+    console.log("Downloading " + video + " ...");
     const videoRequestURL =
         "https://production-ps.lvp.llnw.net/r/PlaylistService/media/<mediaId>/getMobilePlaylistByMediaId";
     fetch(videoRequestURL.replace("<mediaId>", video), {
@@ -231,23 +251,17 @@ function downloadVideo(video, prefix = "") {
         .then(
             (response) =>
                 response.mediaList[0].mobileUrls.find(
-                    (v) =>
-                        v.targetMediaPlatform == "MobileH264" ||
-                        v.targetMediaPlatform == "Broadband"
+                    (v) => v.targetMediaPlatform == "HttpLiveStreaming"
                 ).mobileUrl
         )
-        .then((mobileUrl) =>
-            fetch(mobileUrl.replace("http://", "https://"))
-                .then((response) => response.blob())
-                .then((blob) => {
-                    let tempName = mobileUrl.replace("/root-message-cxf-apache", "");
-                    dowloadBlob(
-                        window.URL.createObjectURL(blob),
-                        prefix + tempName.substring(tempName.lastIndexOf("/") + 1)
-                    );
-                })
-                .catch((e) => console.error(e))
-        );
+        .then((m3u8Url) => {
+            let tempName = m3u8Url.replace("/root-message-cxf-apache", "");
+            tempName = tempName.substring(
+                tempName.lastIndexOf("/") + 1,
+                tempName.lastIndexOf(".")
+            );
+            openM3U8ToolBox(m3u8Url, prefix + tempName + ".mp4");
+        });
 }
 
 function dowloadBlob(blob, filename) {
@@ -257,6 +271,29 @@ function dowloadBlob(blob, filename) {
     document.body.appendChild(a);
     a.click();
     a.remove();
+}
+
+function openM3U8ToolBox(m3u8Url, filename) {
+    // 打开 https://tools.thatwind.com/tool/m3u8downloader
+    var a = document.createElement("a");
+    a.target = "_blank";
+    a.href = constructM3U8ToolBoxURL(m3u8Url, filename);
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+}
+
+function constructM3U8ToolBoxURL(m3u8Url, filename) {
+    var url =
+        "https://tools.thatwind.com/tool/m3u8downloader#" +
+        "m3u8=" +
+        encodeURIComponent(m3u8Url.replace("http://", "https://")) +
+        "&referer=" +
+        encodeURIComponent(window.location.href) +
+        "&filename=" +
+        filename;
+    console.log(url);
+    return url;
 }
 
 // ======================
