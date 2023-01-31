@@ -52,7 +52,7 @@ function removeProtectImg() {
     document
         .querySelectorAll(".protectimg")
         .forEach((node) => node.classList.remove("protectimg"));
-    moDownloaderLog("移除右键限制")
+    moDownloaderLog("移除右键限制");
 }
 
 // ================================
@@ -114,13 +114,13 @@ function attachButtonToArticle(article) {
         // Timeline 视频
         injectPerVideoDownloadButtonForTimeline(article);
     }
-    moDownloaderLog("注入按钮")
+    moDownloaderLog("注入按钮");
 }
 
 function injectPerVideoDownloadButton(div) {
     div.querySelectorAll("div.limelight-player").forEach((videoDiv) => {
         var mediaId = videoDiv.id.substring(videoDiv.id.lastIndexOf("_") + 1);
-        moDownloaderDebug("正在下载视频： " + mediaId)
+        moDownloaderDebug("正在下载视频： " + mediaId);
         injectOneButton(videoDiv.parentElement, "下载视频", function () {
             downloadVideo(
                 mediaId,
@@ -132,8 +132,11 @@ function injectPerVideoDownloadButton(div) {
 
 function injectPerVideoDownloadButtonForTimeline(div) {
     div.querySelectorAll("a.popup_link").forEach((videoDiv) => {
-        var mediaId = videoDiv.getAttribute('onclick').split('movie/')[1].split('/')[0]
-        moDownloaderDebug("正在下载视频： " + mediaId)
+        var mediaId = videoDiv
+            .getAttribute("onclick")
+            .split("movie/")[1]
+            .split("/")[0];
+        moDownloaderDebug("正在下载视频： " + mediaId);
         injectOneButton(videoDiv.parentElement, "下载视频", function () {
             downloadVideo(
                 mediaId,
@@ -142,7 +145,6 @@ function injectPerVideoDownloadButtonForTimeline(div) {
         });
     });
 }
-
 
 function injectOneButton(element, textOnButton, clickListener) {
     var btn = document.createElement("BUTTON");
@@ -210,10 +212,10 @@ function customizedTimelinePage() {
             attachButtonToArticle(node.querySelector("article"))
         );
         removeProtectImg();
-        moDownloaderDebug("正在图片视频： ")
+        moDownloaderDebug("正在图片视频： ");
     });
     observer.observe(infiniteScrollContainer, config);
-    moDownloaderLog("Timeline页面注入按钮")
+    moDownloaderLog("Timeline页面注入按钮");
 }
 
 // ========================
@@ -221,7 +223,7 @@ function customizedTimelinePage() {
 // ========================
 
 function downloadImages(imgs, prefix = "") {
-    moDownloaderDebug("正在图片视频： " + imgs)
+    moDownloaderDebug("正在图片视频： " + imgs);
     // Thanks to https://github.com/y252328/Instagram_Download_Button
     imgs.map((img) =>
         fetch(img, {
@@ -353,13 +355,9 @@ function sanitizeFileName(input, replacement = "_") {
 // =    Logging Utils    =
 // =======================
 function moDownloaderLog(msg) {
-    console.log(
-        '[mo-downloder][' + moDownloaderLog.caller.name + '] ' + msg
-    )
+    console.log("[mo-downloder][" + moDownloaderLog.caller.name + "] " + msg);
 }
 
 function moDownloaderDebug(msg) {
-    console.debug(
-        '[mo-downloder][' + moDownloaderDebug.caller.name + '] ' + msg
-    )
+    console.debug("[mo-downloder][" + moDownloaderDebug.caller.name + "] " + msg);
 }
