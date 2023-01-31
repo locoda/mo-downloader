@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name                mo (LDH) 下载器
 // @namespace           https://1mether.me/
-// @version             0.26
+// @version             0.28
 // @description         在mo的内容页增加图片和视频下载的按钮， 解锁右键功能
 // @author              乙醚(@locoda)
 // @match               http*://m.tribe-m.jp/*
@@ -17,6 +17,20 @@
 
 (function () {
     "use strict";
+    // ================
+    // =    Consts    =
+    // ================
+
+    const isMobile = () =>
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+    );
+    const keywords = ["uplcmn", "upload"];
+
+    // ==============
+    // =    Main    =
+    // ==============
+
     // 删除图片保护
     removeProtectImg();
     // 在详情页注入按钮
@@ -41,323 +55,344 @@
             }
         })();
     }
-})();
 
-function removeProtectImg() {
-    // 移除右键限制
-    document.oncontextmenu = function () {
-        return true;
-    };
-    // 移除protectimg限制
-    document
-        .querySelectorAll(".protectimg")
-        .forEach((node) => node.classList.remove("protectimg"));
-    moDownloaderLog("移除右键限制");
-}
+    // ===============
+    // =    Utils    =
+    // ===============
 
-// ================================
-// =    Button Injection Utils    =
-// ================================
-
-function injectDownloadAllButtons() {
-    var article = document.querySelector("article");
-    if (article.classList.contains("article--news")) {
-        // 新闻页面特殊处理
-        article = article.querySelector(".article__body");
+    function removeProtectImg() {
+        // 移除右键限制
+        document.oncontextmenu = function () {
+            return true;
+        };
+        // 移除protectimg限制
+        document
+            .querySelectorAll(".protectimg")
+            .forEach((node) => node.classList.remove("protectimg"));
+        moDownloaderLog("移除右键限制");
     }
-    attachButtonToArticle(article);
-}
 
-function findEligibleImgs(article) {
-    const keywords = ["uplcmn", "upload"];
-    return Array.from(article.querySelectorAll("img"))
-        .map((img) => img.src)
-        .filter((img) => keywords.some((k) => img.includes(k)));
-}
+    // ================================
+    // =    Button Injection Utils    =
+    // ================================
 
-function attachButtonToArticle(article) {
-    var imgs = findEligibleImgs(article);
-    // 注入按钮 div
-    var buttonsDiv = document.createElement("div");
-    buttonsDiv.className = "ldh-mo-dl";
-    buttonsDiv.style = "margin-top: 0.4em; margin-bottom: 0.4em;";
-    article.insertBefore(buttonsDiv, article.firstChild);
-    // 图片链接生成按钮
-    const isMobile = () =>
-        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-            navigator.userAgent
-        );
-    if (isMobile()) {
-        injectOneButton(buttonsDiv, "生成图片链接", function () {
-            generateOnClickHandler(buttonsDiv, article);
-        });
-    } else {
-        // 图片下载按钮
-        injectOneButton(
-            buttonsDiv,
-            "下载所有图片 (" + imgs.length + ")",
-            function () {
-                downloadOnClickHandler(article);
-            }
-        );
+    function injectDownloadAllButtons() {
+        var article = document.querySelector("article");
+        if (article.classList.contains("article--news")) {
+            // 新闻页面特殊处理
+            article = article.querySelector(".article__body");
+        }
+        attachButtonToArticle(article);
     }
-    // 视频下载按钮
-    if (
-        article.querySelector("div.limelight-player") ||
-        article.querySelector("a.popup_link")
-    ) {
-        // injectOneButton(buttonsDiv, "下载所有视频", function () {
-        //     downloadVideoOnClickHandler(article);
-        // });
-        // List View 视频
-        injectPerVideoDownloadButton(article);
-        // Timeline 视频
-        injectPerVideoDownloadButtonForTimeline(article);
-    }
-    moDownloaderLog("注入按钮");
-}
 
-function injectPerVideoDownloadButton(div) {
-    div.querySelectorAll("div.limelight-player").forEach((videoDiv) => {
-        var mediaId = videoDiv.id.substring(videoDiv.id.lastIndexOf("_") + 1);
-        moDownloaderDebug("正在下载视频： " + mediaId);
-        injectOneButton(videoDiv.parentElement, "下载视频", function () {
-            downloadVideo(
-                mediaId,
-                getPrefixFromArticle(div) || getPrefixFromDocument()
+    function findEligibleImgs(article) {
+        return Array.from(article.querySelectorAll("img"))
+            .map((img) => img.src)
+            .filter((img) => keywords.some((k) => img.includes(k)));
+    }
+
+    function attachButtonToArticle(article) {
+        var imgs = findEligibleImgs(article);
+        // 注入按钮 div
+        var buttonsDiv = document.createElement("div");
+        buttonsDiv.className = "ldh-mo-dl";
+        buttonsDiv.style = "margin-top: 0.4em; margin-bottom: 0.4em;";
+        article.insertBefore(buttonsDiv, article.firstChild);
+        // 图片链接生成按钮
+        if (isMobile()) {
+            injectOneButton(
+                buttonsDiv,
+                "生成图片链接(" + imgs.length + ")",
+                function () {
+                    generateOnClickHandler(buttonsDiv, article);
+                }
             );
-        });
-    });
-}
-
-function injectPerVideoDownloadButtonForTimeline(div) {
-    div.querySelectorAll("a.popup_link").forEach((videoDiv) => {
-        var mediaId = videoDiv
-            .getAttribute("onclick")
-            .split("movie/")[1]
-            .split("/")[0];
-        moDownloaderDebug("正在下载视频： " + mediaId);
-        injectOneButton(videoDiv.parentElement, "下载视频", function () {
-            downloadVideo(
-                mediaId,
-                getPrefixFromArticle(div) || getPrefixFromDocument()
+        } else {
+            // 图片下载按钮
+            injectOneButton(
+                buttonsDiv,
+                "下载所有图片 (" + imgs.length + ")",
+                function () {
+                    downloadOnClickHandler(article);
+                }
             );
-        });
-    });
-}
-
-function injectOneButton(element, textOnButton, clickListener) {
-    var btn = document.createElement("BUTTON");
-    var btnText = document.createTextNode(textOnButton);
-    btn.appendChild(btnText);
-    btn.addEventListener("click", clickListener);
-    btn.style =
-        "background-color: transparent; border: solid #808080 2px; border-radius: 20px; color: #545454; margin: 0.2em";
-    element.appendChild(btn);
-}
-
-function downloadOnClickHandler(article) {
-    downloadImages(findEligibleImgs(article), getPrefixFromArticle(article));
-}
-
-function generateOnClickHandler(buttonsDiv, article) {
-    var imgs = findEligibleImgs(article);
-    var textarea = buttonsDiv.querySelector("textarea.ldh-mo-dl");
-    if (!textarea) {
-        textarea = document.createElement("textarea");
-        textarea.className = "ldh-mo-dl";
-        textarea.style = "height: 100px; width: 80%;";
-        var br = document.createElement("br");
-        buttonsDiv.insertBefore(br, buttonsDiv.firstChild);
-        buttonsDiv.insertBefore(textarea, buttonsDiv.firstChild);
+        }
+        // 视频下载按钮
+        if (
+            article.querySelector("div.limelight-player") ||
+            article.querySelector("a.popup_link")
+        ) {
+            // injectOneButton(buttonsDiv, "下载所有视频", function () {
+            //     downloadVideoOnClickHandler(article);
+            // });
+            // List View 视频
+            injectPerVideoDownloadButton(article);
+            // Timeline 视频
+            injectPerVideoDownloadButtonForTimeline(article);
+        }
+        moDownloaderLog("注入按钮");
     }
-    textarea.value = imgs.join("\n");
-    textarea.select();
-}
 
-function downloadVideoOnClickHandler(article) {
-    var elems = article.querySelectorAll("script");
-    var videos = Array.from(elems)
-        .filter(
-            (v) =>
-                v.textContent.includes("mediaId") &&
-                !v.textContent.includes("blogTalkData")
-        )
-        .map(
-            (v) =>
-                JSON.parse(
-                    v.textContent.substring(
-                        v.textContent.indexOf("(") + 1,
-                        v.textContent.lastIndexOf(")")
+    function injectPerVideoDownloadButton(div) {
+        div.querySelectorAll("div.limelight-player").forEach((videoDiv) => {
+            var mediaId = videoDiv.id.substring(videoDiv.id.lastIndexOf("_") + 1);
+            moDownloaderDebug("正在下载视频： " + mediaId);
+            injectOneButton(videoDiv.parentElement, "下载视频", function () {
+                downloadVideo(
+                    mediaId,
+                    getPrefixFromArticle(div) || getPrefixFromDocument()
+                );
+            });
+        });
+    }
+
+    function injectPerVideoDownloadButtonForTimeline(div) {
+        div.querySelectorAll("a.popup_link").forEach((videoDiv) => {
+            var mediaId = videoDiv
+                .getAttribute("onclick")
+                .split("movie/")[1]
+                .split("/")[0];
+            moDownloaderDebug("正在下载视频： " + mediaId);
+            injectOneButton(videoDiv.parentElement, "下载视频", function () {
+                downloadVideo(
+                    mediaId,
+                    getPrefixFromArticle(div) || getPrefixFromDocument()
+                );
+            });
+        });
+    }
+
+    function injectOneButton(element, textOnButton, clickListener) {
+        var btn = document.createElement("BUTTON");
+        var btnText = document.createTextNode(textOnButton);
+        btn.appendChild(btnText);
+        btn.addEventListener("click", clickListener);
+        btn.style =
+            "background-color: transparent; border: solid #808080 2px; border-radius: 20px; color: #545454; margin: 0.2em";
+        element.appendChild(btn);
+    }
+
+    function downloadOnClickHandler(article) {
+        downloadImages(findEligibleImgs(article), getPrefixFromArticle(article));
+    }
+
+    function generateOnClickHandler(buttonsDiv, article) {
+        var imgs = findEligibleImgs(article);
+        var textarea = buttonsDiv.querySelector("textarea.ldh-mo-dl");
+        if (!textarea) {
+            textarea = document.createElement("textarea");
+            textarea.className = "ldh-mo-dl";
+            textarea.style = "height: 100px; width: 80%;";
+            var br = document.createElement("br");
+            buttonsDiv.insertBefore(br, buttonsDiv.firstChild);
+            buttonsDiv.insertBefore(textarea, buttonsDiv.firstChild);
+        }
+        textarea.value = imgs.join("\n");
+        textarea.select();
+    }
+
+    function downloadVideoOnClickHandler(article) {
+        var elems = article.querySelectorAll("script");
+        var videos = Array.from(elems)
+            .filter(
+                (v) =>
+                    v.textContent.includes("mediaId") &&
+                    !v.textContent.includes("blogTalkData")
+            )
+            .map(
+                (v) =>
+                    JSON.parse(
+                        v.textContent.substring(
+                            v.textContent.indexOf("(") + 1,
+                            v.textContent.lastIndexOf(")")
+                        )
+                    ).mediaId
+            );
+
+        videos.map((video) => downloadVideo(video, getPrefixFromArticle(article)));
+    }
+
+    function customizedTimelinePage() {
+        // 初始化
+        document
+            .querySelectorAll("ldh-infinite-scroll article")
+            .forEach((article) => attachButtonToArticle(article));
+        //
+        const infiniteScrollContainer = document.querySelector(
+            "ldh-infinite-scroll"
+        );
+        const config = { childList: true };
+        const observer = new MutationObserver(function (mutations, observer) {
+            var nodes = mutations.find((r) =>
+                Array.from(r.addedNodes).filter((n) => (n.className = "article"))
+            ).addedNodes;
+            nodes.forEach((node) =>
+                attachButtonToArticle(node.querySelector("article"))
+            );
+            removeProtectImg();
+            moDownloaderDebug("正在图片视频： ");
+        });
+        observer.observe(infiniteScrollContainer, config);
+        moDownloaderLog("Timeline页面注入按钮");
+    }
+
+    // ========================
+    // =    Download Utils    =
+    // ========================
+
+    function downloadImages(imgs, prefix = "") {
+        moDownloaderDebug("正在图片视频： " + imgs);
+        // Thanks to https://github.com/y252328/Instagram_Download_Button
+        imgs.map((img) =>
+            fetch(img, {
+                headers: new Headers({
+                    Origin: window.location.origin,
+                }),
+                mode: "cors",
+                cache: "no-cache",
+            })
+                .then((response) => response.blob())
+                .then((blob) =>
+                    dowloadBlob(
+                        window.URL.createObjectURL(blob),
+                        prefix + img.substring(img.lastIndexOf("/") + 1)
                     )
-                ).mediaId
+                )
+                .catch((e) => console.error(e))
         );
+    }
 
-    videos.map((video) => downloadVideo(video, getPrefixFromArticle(article)));
-}
-
-function customizedTimelinePage() {
-    // 初始化
-    document
-        .querySelectorAll("ldh-infinite-scroll article")
-        .forEach((article) => attachButtonToArticle(article));
-    //
-    const infiniteScrollContainer = document.querySelector("ldh-infinite-scroll");
-    const config = { childList: true };
-    const observer = new MutationObserver(function (mutations, observer) {
-        var nodes = mutations.find((r) =>
-            Array.from(r.addedNodes).filter((n) => (n.className = "article"))
-        ).addedNodes;
-        nodes.forEach((node) =>
-            attachButtonToArticle(node.querySelector("article"))
-        );
-        removeProtectImg();
-        moDownloaderDebug("正在图片视频： ");
-    });
-    observer.observe(infiniteScrollContainer, config);
-    moDownloaderLog("Timeline页面注入按钮");
-}
-
-// ========================
-// =    Download Utils    =
-// ========================
-
-function downloadImages(imgs, prefix = "") {
-    moDownloaderDebug("正在图片视频： " + imgs);
-    // Thanks to https://github.com/y252328/Instagram_Download_Button
-    imgs.map((img) =>
-        fetch(img, {
+    function downloadVideo(video, prefix = "") {
+        const videoRequestURL =
+            "https://production-ps.lvp.llnw.net/r/PlaylistService/media/<mediaId>/getMobilePlaylistByMediaId";
+        fetch(videoRequestURL.replace("<mediaId>", video), {
             headers: new Headers({
                 Origin: window.location.origin,
+                Referer: window.location.origin,
             }),
             mode: "cors",
             cache: "no-cache",
         })
-            .then((response) => response.blob())
-            .then((blob) =>
-                dowloadBlob(
-                    window.URL.createObjectURL(blob),
-                    prefix + img.substring(img.lastIndexOf("/") + 1)
-                )
-            )
-            .catch((e) => console.error(e))
-    );
-}
+            .then((response) => response.json())
+            .then((response) => {
+                if (isMobile()) {
+                    let mobileUrl = response.mediaList[0].mobileUrls.find(
+                        (v) =>
+                            v.targetMediaPlatform == "MobileH264" ||
+                            v.targetMediaPlatform == "Broadband"
+                    ).mobileUrl;
+                    fetch(mobileUrl.replace("http://", "https://"))
+                        .then((response) => response.blob())
+                        .then((blob) => {
+                            dowloadBlob(
+                                window.URL.createObjectURL(blob),
+                                prefix + getFilenameFromVideoUrl(mobileUrl)
+                            );
+                        })
+                        .catch((e) => console.error(e));
+                } else {
+                    let m3u8Url = response.mediaList[0].mobileUrls.find(
+                        (v) => v.targetMediaPlatform == "HttpLiveStreaming"
+                    ).mobileUrl;
+                    openM3U8ToolBox(m3u8Url, prefix + getFilenameFromVideoUrl(m3u8Url));
+                }
+            });
+    }
 
-function downloadVideo(video, prefix = "") {
-    const videoRequestURL =
-        "https://production-ps.lvp.llnw.net/r/PlaylistService/media/<mediaId>/getMobilePlaylistByMediaId";
-    fetch(videoRequestURL.replace("<mediaId>", video), {
-        headers: new Headers({
-            Origin: window.location.origin,
-            Referer: window.location.origin,
-        }),
-        mode: "cors",
-        cache: "no-cache",
-    })
-        .then((response) => response.json())
-        .then(
-            (response) =>
-                response.mediaList[0].mobileUrls.find(
-                    (v) => v.targetMediaPlatform == "HttpLiveStreaming"
-                ).mobileUrl
-        )
-        .then((m3u8Url) => {
-            let tempName = m3u8Url.replace("/root-message-cxf-apache", "");
-            tempName = tempName.substring(
-                tempName.lastIndexOf("/") + 1,
-                tempName.lastIndexOf(".")
+    function dowloadBlob(blob, filename) {
+        var a = document.createElement("a");
+        a.download = filename;
+        a.href = blob;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+    }
+
+    function openM3U8ToolBox(m3u8Url, filename) {
+        // 打开 https://tools.thatwind.com/tool/m3u8downloader
+        var a = document.createElement("a");
+        a.target = "_blank";
+        a.href = constructM3U8ToolBoxURL(m3u8Url, filename);
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+    }
+
+    function constructM3U8ToolBoxURL(m3u8Url, filename) {
+        var url =
+            "https://tools.thatwind.com/tool/m3u8downloader#" +
+            "m3u8=" +
+            encodeURIComponent(m3u8Url.replace("http://", "https://")) +
+            "&referer=" +
+            encodeURIComponent(window.location.href) +
+            "&filename=" +
+            filename;
+        moDownloaderDebug(url);
+        return url;
+    }
+
+    // ======================
+    // =    Naming Utils    =
+    // ======================
+
+    function getPrefixFromArticle(article) {
+        var candidate =
+            article.querySelector(".article__head") ||
+            article.querySelector(".article__header");
+        if (candidate) {
+            return sanitizeFileName(
+                candidate.textContent
+                    .split(/\s/g)
+                    .filter((s) => s)
+                    .join("_") + "_"
             );
-            openM3U8ToolBox(m3u8Url, prefix + tempName + ".mp4");
-        });
-}
-
-function dowloadBlob(blob, filename) {
-    var a = document.createElement("a");
-    a.download = filename;
-    a.href = blob;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-}
-
-function openM3U8ToolBox(m3u8Url, filename) {
-    // 打开 https://tools.thatwind.com/tool/m3u8downloader
-    var a = document.createElement("a");
-    a.target = "_blank";
-    a.href = constructM3U8ToolBoxURL(m3u8Url, filename);
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-}
-
-function constructM3U8ToolBoxURL(m3u8Url, filename) {
-    var url =
-        "https://tools.thatwind.com/tool/m3u8downloader#" +
-        "m3u8=" +
-        encodeURIComponent(m3u8Url.replace("http://", "https://")) +
-        "&referer=" +
-        encodeURIComponent(window.location.href) +
-        "&filename=" +
-        filename;
-    moDownloaderDebug(url);
-    return url;
-}
-
-// ======================
-// =    Naming Utils    =
-// ======================
-
-function getPrefixFromArticle(article) {
-    var candidate =
-        article.querySelector(".article__head") ||
-        article.querySelector(".article__header");
-    if (candidate) {
-        return sanitizeFileName(
-            candidate.textContent
-                .split(/\s/g)
-                .filter((s) => s)
-                .join("_") + "_"
-        );
+        }
+        return "";
     }
-    return "";
-}
 
-function getPrefixFromDocument() {
-    var candidate = document.querySelector(".movie-title-block");
-    if (candidate) {
-        return sanitizeFileName(
-            candidate.textContent
-                .split(/\s/g)
-                .filter((s) => s)
-                .join("_") + "_"
-        );
+    function getPrefixFromDocument() {
+        var candidate = document.querySelector(".movie-title-block");
+        if (candidate) {
+            return sanitizeFileName(
+                candidate.textContent
+                    .split(/\s/g)
+                    .filter((s) => s)
+                    .join("_") + "_"
+            );
+        }
+        return "";
     }
-    return "";
-}
 
-function sanitizeFileName(input, replacement = "_") {
-    // Thanks to https://github.com/parshap/node-sanitize-filename/blob/master/index.js
-    const illegalRe = /[\/\?<>\\:\*\|"]/g;
-    const controlRe = /[\x00-\x1f\x80-\x9f]/g;
-    const reservedRe = /^\.+$/;
-    const windowsReservedRe = /^(con|prn|aux|nul|com[0-9]|lpt[0-9])(\..*)?$/i;
-    const windowsTrailingRe = /[\. ]+$/;
-    return input
-        .replace(illegalRe, replacement)
-        .replace(controlRe, replacement)
-        .replace(reservedRe, replacement)
-        .replace(windowsReservedRe, replacement)
-        .replace(windowsTrailingRe, replacement);
-}
+    function getFilenameFromVideoUrl(url) {
+        let tempName = url.replace("/root-message-cxf-apache", "");
+        tempName = tempName.substring(tempName.lastIndexOf("/") + 1).replace(".m3u8", ".mp4");
+        return tempName;
+    }
 
-// =======================
-// =    Logging Utils    =
-// =======================
-function moDownloaderLog(msg) {
-    console.log("[mo-downloder][" + moDownloaderLog.caller.name + "] " + msg);
-}
+    function sanitizeFileName(input, replacement = "_") {
+        // Thanks to https://github.com/parshap/node-sanitize-filename/blob/master/index.js
+        const illegalRe = /[\/\?<>\\:\*\|"]/g;
+        const controlRe = /[\x00-\x1f\x80-\x9f]/g;
+        const reservedRe = /^\.+$/;
+        const windowsReservedRe = /^(con|prn|aux|nul|com[0-9]|lpt[0-9])(\..*)?$/i;
+        const windowsTrailingRe = /[\. ]+$/;
+        return input
+            .replace(illegalRe, replacement)
+            .replace(controlRe, replacement)
+            .replace(reservedRe, replacement)
+            .replace(windowsReservedRe, replacement)
+            .replace(windowsTrailingRe, replacement);
+    }
 
-function moDownloaderDebug(msg) {
-    console.debug("[mo-downloder][" + moDownloaderDebug.caller.name + "] " + msg);
-}
+    // =======================
+    // =    Logging Utils    =
+    // =======================
+
+    function moDownloaderLog(msg) {
+        console.log("[mo-downloder] " + msg);
+    }
+
+    function moDownloaderDebug(msg) {
+        console.debug("[mo-downloder] " + msg);
+    }
+})();
