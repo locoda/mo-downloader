@@ -1,5 +1,5 @@
-# build-alook.yaml
-name: "Build Alook Extension"
+# build.yaml
+name: "Build"
 
 on:
   push:
@@ -22,6 +22,10 @@ jobs:
 
       - name: Build Alook Extension
         run: python parse-to-alook.py
+        shell: bash
+
+      - name: Build Public Folder
+        run: cp *.user.js public/ && cp *.alook public/ && cp -r demos public/
         shell: bash
 
       - uses: EndBug/add-and-commit@v9

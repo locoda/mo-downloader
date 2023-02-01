@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name                mo (LDH) 下载器
 // @namespace           https://1mether.me/
-// @version             0.30
+// @version             0.31
 // @description         在mo的内容页增加图片和视频下载的按钮， 解锁右键功能
 // @author              乙醚(@locoda)
 // @match               http*://m.tribe-m.jp/*
@@ -209,7 +209,7 @@
                 attachButtonToArticle(node.querySelector("article"))
             );
             removeProtectImg();
-            moDownloaderDebug("正在图片视频： ");
+            moDownloaderDebug("解除刷新后时间线右键限制");
         });
         observer.observe(infiniteScrollContainer, config);
         moDownloaderLog("Timeline页面注入按钮");
@@ -220,7 +220,7 @@
     // ========================
 
     function downloadImages(imgs, prefix = "") {
-        moDownloaderDebug("正在图片视频： " + imgs);
+        moDownloaderDebug("正在下载图片： " + imgs);
         // Thanks to https://github.com/y252328/Instagram_Download_Button
         imgs.map((img) =>
             fetch(img, {
@@ -254,14 +254,34 @@
         })
             .then((response) => response.json())
             .then((response) => {
-                let m3u8Url = response.mediaList[0].mobileUrls.find(
-                    (v) => v.targetMediaPlatform == "HttpLiveStreaming"
-                ).mobileUrl;
-                openM3U8ToolBox(
-                    button,
-                    m3u8Url,
-                    prefix + getFilenameFromVideoUrl(m3u8Url)
-                );
+                // 主m3u8
+                let m3u8Url = response.mediaList[0].mobileUrls
+                    .find((v) => v.targetMediaPlatform == "HttpLiveStreaming")
+                    .mobileUrl.replace("http://", "https://");
+                fetch(m3u8Url)
+                    .then((response) => response.text())
+                    .then((response) => {
+                        // 获取m3u8中最高清的
+                        const bandwithRe = /BANDWIDTH=(\d+)/i;
+                        var eligibleStreamsRaw = response
+                            .split("#EXT-X-STREAM-INF:")
+                            .slice(1);
+                        eligibleStreamsRaw.sort((a, b) => {
+                            return (
+                                parseInt(b.match(bandwithRe)[1]) -
+                                parseInt(a.match(bandwithRe)[1])
+                            );
+                        });
+                        var candidate = eligibleStreamsRaw[0].split("\n")[1];
+                        return new URL(candidate, new URL(m3u8Url).origin).href;
+                    })
+                    .then((m3u8Url) =>
+                        openM3U8ToolBox(
+                            button,
+                            m3u8Url,
+                            prefix + getFilenameFromVideoUrl(m3u8Url)
+                        )
+                    );
             });
     }
 
@@ -282,7 +302,7 @@
             if (!a) {
                 var a = document.createElement("a");
                 var aText = document.createTextNode("点击打开下载页面");
-                a.className = 'mo-downloader';
+                a.className = "mo-downloader";
                 a.append(aText);
                 a.target = "_blank";
                 a.href = constructM3U8ToolBoxURL(m3u8Url, filename);
@@ -303,7 +323,7 @@
         var url =
             "https://tools.thatwind.com/tool/m3u8downloader#" +
             "m3u8=" +
-            encodeURIComponent(m3u8Url.replace("http://", "https://")) +
+            encodeURIComponent(m3u8Url) +
             "&referer=" +
             encodeURIComponent(window.location.href) +
             "&filename=" +
@@ -377,24 +397,5 @@
 
     function moDownloaderDebug(msg) {
         console.debug("[mo-downloder] " + msg);
-    }
-
-    function moDownloadermessage(text, disappearTime = 5000) {
-        let p = document.querySelector("#mo-downloader-message");
-        if (!p) {
-            p = document.createElement("div");
-            p.id = "mo-downloader-message";
-            p.style =
-                "position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; align-items: end; z-index: 999999999999999;";
-            (document.body || document.documentElement).appendChild(p);
-        }
-        let mdiv = document.createElement("div");
-        mdiv.innerText = text;
-        mdiv.style =
-            "padding: 3px 8px; border-radius: 5px; background: black; box-shadow: #000 1px 2px 5px; margin-top: 10px; font-size: small; color: #fff; text-align: right;";
-        p.appendChild(mdiv);
-        setTimeout(() => {
-            p.removeChild(mdiv);
-        }, disappearTime);
     }
 })();

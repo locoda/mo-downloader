@@ -232,7 +232,7 @@
                 attachButtonToArticle(node.querySelector("article"))
             );
             removeProtectImg();
-            moDownloaderDebug("移除图片保护");
+            moDownloaderDebug("解除刷新后时间线右键限制");
         });
         observer.observe(infiniteScrollContainer, config);
         moDownloaderLog("Timeline页面注入按钮");
@@ -277,14 +277,34 @@
         })
             .then((response) => response.json())
             .then((response) => {
-                let m3u8Url = response.mediaList[0].mobileUrls.find(
-                    (v) => v.targetMediaPlatform == "HttpLiveStreaming"
-                ).mobileUrl;
-                openM3U8ToolBox(
-                    button,
-                    m3u8Url,
-                    prefix + getFilenameFromVideoUrl(m3u8Url)
-                );
+                // 主m3u8
+                let m3u8Url = response.mediaList[0].mobileUrls
+                    .find((v) => v.targetMediaPlatform == "HttpLiveStreaming")
+                    .mobileUrl.replace("http://", "https://");
+                fetch(m3u8Url)
+                    .then((response) => response.text())
+                    .then((response) => {
+                        // 获取m3u8中最高清的
+                        const bandwithRe = /BANDWIDTH=(\d+)/i;
+                        var eligibleStreamsRaw = response
+                            .split("#EXT-X-STREAM-INF:")
+                            .slice(1);
+                        eligibleStreamsRaw.sort((a, b) => {
+                            return (
+                                parseInt(b.match(bandwithRe)[1]) -
+                                parseInt(a.match(bandwithRe)[1])
+                            );
+                        });
+                        var candidate = eligibleStreamsRaw[0].split("\n")[1];
+                        return new URL(candidate, new URL(m3u8Url).origin).href;
+                    })
+                    .then((m3u8Url) =>
+                        openM3U8ToolBox(
+                            button,
+                            m3u8Url,
+                            prefix + getFilenameFromVideoUrl(m3u8Url)
+                        )
+                    );
             });
     }
 
@@ -326,7 +346,7 @@
         var url =
             "https://tools.thatwind.com/tool/m3u8downloader#" +
             "m3u8=" +
-            encodeURIComponent(m3u8Url.replace("http://", "https://")) +
+            encodeURIComponent(m3u8Url) +
             "&referer=" +
             encodeURIComponent(window.location.href) +
             "&filename=" +
