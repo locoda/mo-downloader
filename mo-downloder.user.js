@@ -1,13 +1,14 @@
 // ==UserScript==
 // @name                mo (LDH) 下载器
 // @namespace           https://1mether.me/
-// @version             0.30
+// @version             0.31
 // @description         在mo的内容页增加图片和视频下载的按钮， 解锁右键功能
 // @author              乙醚(@locoda)
 // @match               http*://m.tribe-m.jp/*
 // @match               http*://m.ex-m.jp/*
 // @match               http*://m.ldh-m.jp/*
 // @match               http*://m.ldhgirls-m.jp/*
+// @match               http*://www.cl-live.com/programs/*
 // @icon                https://www.google.com/s2/favicons?sz=64&domain=ldh.co.jp
 // @source              https://github.com/locoda/mo-downloader
 // @updateURL           https://github.com/locoda/mo-downloader/raw/main/mo-downloder.user.js
@@ -32,29 +33,33 @@
     // =    Main    =
     // ==============
 
-    // 删除图片保护
-    removeProtectImg();
-    // 在详情页注入按钮
-    if (window.location.href.includes("detail")) {
-        injectDownloadAllButtons();
-    }
-    // 根据视频注入按钮
-    if (window.location.href.includes("movie")) {
-        if (document.querySelector("div.limelight-player")) {
-            injectPerVideoDownloadButton(document);
+    if (window.location.href.includes("-m.jp")) {
+        // 删除图片保护
+        removeProtectImg();
+        // 在详情页注入按钮
+        if (window.location.href.includes("detail")) {
+            injectDownloadAllButtons();
         }
-    }
-    // 在时间轴界面设置Listener
-    if (window.location.href.includes("timeline")) {
-        // 等待加载scroll
-        (function init() {
-            var counter = document.querySelector("ldh-infinite-scroll");
-            if (counter) {
-                customizedTimelinePage();
-            } else {
-                setTimeout(init, 300);
+        // 根据视频注入按钮
+        if (window.location.href.includes("movie")) {
+            if (document.querySelector("div.limelight-player")) {
+                injectPerVideoDownloadButton(document);
             }
-        })();
+        }
+        // 在时间轴界面设置Listener
+        if (window.location.href.includes("timeline")) {
+            // 等待加载scroll
+            (function init() {
+                var counter = document.querySelector("ldh-infinite-scroll");
+                if (counter) {
+                    customizedTimelinePage();
+                } else {
+                    setTimeout(init, 300);
+                }
+            })();
+        }
+    } else if (window.location.href.includes("cl-live.com/programs")) {
+        injectCLButton();
     }
 
     // ===============
@@ -136,7 +141,7 @@
             var mediaId = videoDiv.id.substring(videoDiv.id.lastIndexOf("_") + 1);
             moDownloaderDebug("正在下载视频： " + mediaId);
             injectOneButton(videoDiv.parentElement, "下载视频", function (event) {
-                downloadVideo(
+                downloadMoVideo(
                     event.target,
                     mediaId,
                     getPrefixFromArticle(div) || getPrefixFromDocument()
@@ -153,13 +158,31 @@
                 .split("/")[0];
             moDownloaderDebug("正在下载视频： " + mediaId);
             injectOneButton(videoDiv.parentElement, "下载视频", function (event) {
-                downloadVideo(
+                downloadMoVideo(
                     event.target,
                     mediaId,
                     getPrefixFromArticle(div) || getPrefixFromDocument()
                 );
             });
         });
+    }
+
+    function injectCLButton() {
+        let data = JSON.parse(
+            Array.from(document.querySelectorAll("script"))
+                .find((s) => s.textContent.includes("__PRELOADED_STATE__"))
+                .textContent.split("window.")
+                .find((s) => s.includes("m3u8"))
+                .replace("__PRELOADED_STATE__ = ", "")
+                .slice(0, -1)
+        );
+        let id = window.location.href.split("/").slice(-1)[0].split("?")[0];
+        if (window.location.href.includes("cast")) {
+            var m3u8Url = data.program.castVideos[id].castHlsUrl;
+        } else if (window.location.href.includes("ondemand")) {
+            var m3u8Url = data.program.ondemandVideos[id].hlsUrl;
+        }
+        console.log(m3u8Url)
     }
 
     function injectOneButton(element, textOnButton, clickListener) {
@@ -196,7 +219,7 @@
         document
             .querySelectorAll("ldh-infinite-scroll article")
             .forEach((article) => attachButtonToArticle(article));
-        //
+        // 为时间轴截面增加监听
         const infiniteScrollContainer = document.querySelector(
             "ldh-infinite-scroll"
         );
@@ -209,7 +232,7 @@
                 attachButtonToArticle(node.querySelector("article"))
             );
             removeProtectImg();
-            moDownloaderDebug("正在图片视频： ");
+            moDownloaderDebug("移除图片保护");
         });
         observer.observe(infiniteScrollContainer, config);
         moDownloaderLog("Timeline页面注入按钮");
@@ -220,7 +243,7 @@
     // ========================
 
     function downloadImages(imgs, prefix = "") {
-        moDownloaderDebug("正在图片视频： " + imgs);
+        moDownloaderDebug("正在下载图片： " + imgs);
         // Thanks to https://github.com/y252328/Instagram_Download_Button
         imgs.map((img) =>
             fetch(img, {
@@ -241,7 +264,7 @@
         );
     }
 
-    function downloadVideo(button, video, prefix = "") {
+    function downloadMoVideo(button, video, prefix = "") {
         const videoRequestURL =
             "https://production-ps.lvp.llnw.net/r/PlaylistService/media/<mediaId>/getMobilePlaylistByMediaId";
         fetch(videoRequestURL.replace("<mediaId>", video), {
@@ -282,7 +305,7 @@
             if (!a) {
                 var a = document.createElement("a");
                 var aText = document.createTextNode("点击打开下载页面");
-                a.className = 'mo-downloader';
+                a.className = "mo-downloader";
                 a.append(aText);
                 a.target = "_blank";
                 a.href = constructM3U8ToolBoxURL(m3u8Url, filename);
@@ -377,24 +400,5 @@
 
     function moDownloaderDebug(msg) {
         console.debug("[mo-downloder] " + msg);
-    }
-
-    function moDownloadermessage(text, disappearTime = 5000) {
-        let p = document.querySelector("#mo-downloader-message");
-        if (!p) {
-            p = document.createElement("div");
-            p.id = "mo-downloader-message";
-            p.style =
-                "position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; align-items: end; z-index: 999999999999999;";
-            (document.body || document.documentElement).appendChild(p);
-        }
-        let mdiv = document.createElement("div");
-        mdiv.innerText = text;
-        mdiv.style =
-            "padding: 3px 8px; border-radius: 5px; background: black; box-shadow: #000 1px 2px 5px; margin-top: 10px; font-size: small; color: #fff; text-align: right;";
-        p.appendChild(mdiv);
-        setTimeout(() => {
-            p.removeChild(mdiv);
-        }, disappearTime);
     }
 })();
