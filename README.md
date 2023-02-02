@@ -54,6 +54,8 @@
 
 由于我没有安卓手机……😭
 
+经工友提示，可以使用QQ浏览器长按下载图片和视频
+
 ## m3u8下载器使用方法
 
 - 感谢那风的[工具箱](https://tools.thatwind.com/tool/m3u8downloader)，也可以使用[他的脚本](https://greasyfork.org/scripts/449581)下载其他页面的视频
