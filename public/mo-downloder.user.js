@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name                mo (LDH) 下载器
 // @namespace           https://1mether.me/
-// @version             0.32
+// @version             0.34
 // @description         在mo的内容页增加图片和视频下载的按钮， 解锁右键功能
 // @author              乙醚(@locoda)
 // @match               http*://m.tribe-m.jp/*
@@ -56,12 +56,18 @@
             }
         })();
     }
-
+    // A写页面注入按钮
     if (
         window.location.href.includes("artistphoto") ||
         window.location.href.includes("artist_photo")
     ) {
-        injectArtistPhodoDownloadButton();
+        injectArtistPhotoDownloadButton();
+    }
+    // Offshot页面注入按钮
+    if (
+        window.location.href.includes("ldh_off_shot")
+    ) {
+        injectOffshotDownloadButton();
     }
 
     // ===============
@@ -102,9 +108,7 @@
     function attachButtonToArticle(article) {
         var imgs = findEligibleImgs(article);
         // 注入按钮 div
-        var buttonsDiv = document.createElement("div");
-        buttonsDiv.className = "ldh-mo-dl";
-        buttonsDiv.style = "margin-top: 0.4em; margin-bottom: 0.4em;";
+        var buttonsDiv = getButtonDiv();
         article.insertBefore(buttonsDiv, article.firstChild);
         // 图片链接生成按钮
         if (isMobile()) {
@@ -112,7 +116,7 @@
                 buttonsDiv,
                 "生成图片链接(" + imgs.length + ")",
                 function () {
-                    generateOnClickHandler(buttonsDiv, article);
+                    generateOnClickHandler(buttonsDiv, imgs);
                 }
             );
         } else {
@@ -152,7 +156,7 @@
         });
     }
 
-    function injectArtistPhodoDownloadButton() {
+    function injectArtistPhotoDownloadButton() {
         var inner = document.querySelector("#cms-inner");
         if (inner) {
             // New Page
@@ -168,17 +172,46 @@
                 (img) => img.src
             );
         }
-        var buttonsDiv = document.createElement("div");
-        buttonsDiv.className = "ldh-mo-dl";
-        buttonsDiv.style = "margin-top: 0.4em; margin-bottom: 0.4em;";
+        var buttonsDiv = getButtonDiv();
         title.append(buttonsDiv);
-        injectOneButton(
-            buttonsDiv,
-            "下载所有图片 (" + imgs.length + ")",
-            function () {
-                downloadImages(imgs, document.title.split("|")[0]);
+        if (!isMobile()) {
+            injectOneButton(
+                buttonsDiv,
+                "下载所有图片 (" + imgs.length + ")",
+                function () {
+                    downloadImages(imgs, document.title.split("|")[0]);
+                }
+            );
+        } else {
+            injectOneButton(
+                buttonsDiv,
+                "生成图片链接(" + imgs.length + ")",
+                function () {
+                    generateOnClickHandler(buttonsDiv, imgs);
+                }
+            );
+        }
+    }
+
+    function injectOffshotDownloadButton() {
+        var inner = document.querySelector(".inner");
+        var divs = Array.from(inner.querySelectorAll("div[id^='js-gallery']"));
+        divs.map((div) => {
+            var buttonsDiv = getButtonDiv();
+            div.parentElement.appendChild(buttonsDiv)
+            var imgs = Array.from(div.querySelectorAll("a")).map(
+                (a) => new URL(a.href, window.location.origin).href
+            );
+            if (!isMobile()) {
+                injectOneButton(
+                    buttonsDiv,
+                    "下载图片 (" + imgs.length + ")",
+                    function () {
+                        downloadImages(imgs, document.title.split("|")[0] + div.id + " ");
+                    },
+                );
             }
-        );
+        });
     }
 
     function injectPerVideoDownloadButtonForTimeline(div) {
@@ -198,13 +231,13 @@
         });
     }
 
-    function injectOneButton(element, textOnButton, clickListener) {
+    function injectOneButton(element, textOnButton, clickListener, extraStyle="") {
         var btn = document.createElement("BUTTON");
         var btnText = document.createTextNode(textOnButton);
         btn.appendChild(btnText);
         btn.addEventListener("click", clickListener);
         btn.style =
-            "background-color: transparent; border: solid #808080 2px; border-radius: 20px; color: #545454; margin: 0.2em";
+            "background-color: transparent; border: solid #808080 2px; border-radius: 20px; color: #545454; margin: 0.2em;" + extraStyle;
         element.appendChild(btn);
     }
 
@@ -212,8 +245,14 @@
         downloadImages(findEligibleImgs(article), getPrefixFromArticle(article));
     }
 
-    function generateOnClickHandler(buttonsDiv, article) {
-        var imgs = findEligibleImgs(article);
+    function getButtonDiv() {
+        var buttonsDiv = document.createElement("div");
+        buttonsDiv.className = "ldh-mo-dl";
+        buttonsDiv.style = "margin-top: 0.4em; margin-bottom: 0.4em";
+        return buttonsDiv;
+    }
+
+    function generateOnClickHandler(buttonsDiv, imgs) {
         var textarea = buttonsDiv.querySelector("textarea.ldh-mo-dl");
         if (!textarea) {
             textarea = document.createElement("textarea");
