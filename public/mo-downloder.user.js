@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name                mo (LDH) 下载器
 // @namespace           https://1mether.me/
-// @version             0.31
+// @version             0.32
 // @description         在mo的内容页增加图片和视频下载的按钮， 解锁右键功能
 // @author              乙醚(@locoda)
 // @match               http*://m.tribe-m.jp/*
@@ -55,6 +55,13 @@
                 setTimeout(init, 300);
             }
         })();
+    }
+
+    if (
+        window.location.href.includes("artistphoto") ||
+        window.location.href.includes("artist_photo")
+    ) {
+        injectArtistPhodoDownloadButton();
     }
 
     // ===============
@@ -139,10 +146,39 @@
                 downloadVideo(
                     event.target,
                     mediaId,
-                    getPrefixFromArticle(div) || getPrefixFromDocument()
+                    getPrefixFromArticle(div) || getPrefixFromMovieDocument()
                 );
             });
         });
+    }
+
+    function injectArtistPhodoDownloadButton() {
+        var inner = document.querySelector("#cms-inner");
+        if (inner) {
+            // New Page
+            var title = inner.querySelector(".cms-section__inner__one-col");
+            var imgs = Array.from(inner.querySelectorAll("ldh-cms-img img")).map(
+                (img) => img.src
+            );
+        } else {
+            // Legacy Page
+            inner = document.querySelector(".inner");
+            var title = inner.querySelector("section");
+            var imgs = Array.from(inner.querySelectorAll("img")).map(
+                (img) => img.src
+            );
+        }
+        var buttonsDiv = document.createElement("div");
+        buttonsDiv.className = "ldh-mo-dl";
+        buttonsDiv.style = "margin-top: 0.4em; margin-bottom: 0.4em;";
+        title.append(buttonsDiv);
+        injectOneButton(
+            buttonsDiv,
+            "下载所有图片 (" + imgs.length + ")",
+            function () {
+                downloadImages(imgs, document.title.split("|")[0]);
+            }
+        );
     }
 
     function injectPerVideoDownloadButtonForTimeline(div) {
@@ -156,7 +192,7 @@
                 downloadVideo(
                     event.target,
                     mediaId,
-                    getPrefixFromArticle(div) || getPrefixFromDocument()
+                    getPrefixFromArticle(div) || getPrefixFromMovieDocument()
                 );
             });
         });
@@ -222,23 +258,35 @@
     function downloadImages(imgs, prefix = "") {
         moDownloaderDebug("正在下载图片： " + imgs);
         // Thanks to https://github.com/y252328/Instagram_Download_Button
-        imgs.map((img) =>
-            fetch(img, {
-                headers: new Headers({
-                    Origin: window.location.origin,
-                }),
-                mode: "cors",
-                cache: "no-cache",
-            })
-                .then((response) => response.blob())
-                .then((blob) =>
-                    dowloadBlob(
-                        window.URL.createObjectURL(blob),
-                        prefix + img.substring(img.lastIndexOf("/") + 1)
-                    )
+        if (imgs.length <= 10) {
+            // 同时最多下载十张图
+            imgs.map((img) => downloadOneImage(img, prefix));
+        } else {
+            // 设置延时下载更多图片 https://stackoverflow.com/questions/56244902/56245610#56245610
+            imgs.forEach((img, index) => {
+                setTimeout(function () {
+                    downloadOneImage(img, prefix);
+                }, index * 300);
+            });
+        }
+    }
+
+    function downloadOneImage(img, prefix = "") {
+        fetch(img, {
+            headers: new Headers({
+                Origin: window.location.origin,
+            }),
+            mode: "cors",
+            cache: "no-cache",
+        })
+            .then((response) => response.blob())
+            .then((blob) =>
+                dowloadBlob(
+                    window.URL.createObjectURL(blob),
+                    prefix + img.substring(img.lastIndexOf("/") + 1)
                 )
-                .catch((e) => console.error(e))
-        );
+            )
+            .catch((e) => console.error(e));
     }
 
     function downloadVideo(button, video, prefix = "") {
@@ -351,7 +399,7 @@
         return "";
     }
 
-    function getPrefixFromDocument() {
+    function getPrefixFromMovieDocument() {
         var candidate = document.querySelector(".movie-title-block");
         if (candidate) {
             return sanitizeFileName(
