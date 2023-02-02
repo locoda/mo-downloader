@@ -56,14 +56,14 @@
 
 ## m3u8下载器使用方法
 
+- 感谢那风的[工具箱](https://tools.thatwind.com/tool/m3u8downloader)，也可以使用[他的脚本](https://greasyfork.org/scripts/449581)下载其他页面的视频
 - 如图所示：m3u8链接自动填入、点击选择保存目录、下载
-- 【新】0.31及以上不需要手动选择源了，将会自动提供最高清的源
 - ![How to use m3u8 Toolbox](https://mo-downloader.pages.dev/demos/chrome-m3u8.png)
-  - 目前发现这个工具下载的视频有点小问题，如果有使用ffmpeg的话可以 `ffmpeg -i <in.ts/.mp4> -map 0 -c copy -dn -bsf:a aac_adtstoasc <out.mp4>` 生成常规视频……（暂时没有找到其他方法无损地做这件事）（但是大家应该也有用ts档所以还好吧……）
+  - 目前发现这个工具下载的视频有点小问题，如果有使用ffmpeg的话可以 `ffmpeg -i <in.ts/.mp4> -map 0 -c copy -dn -bsf:a aac_adtstoasc <out.mp4>` 生成常规视频……（暂时没有找到其他方法做这件事）（但是大家应该也有用ts档所以还好吧……）
 
 ## 我可能想增加……（Todo/Wishlist）
 
-- [x] ~Timeline界面的下载功能~ 已实现（视频需要额外点击……）
-- [x] ~文件重命名（改为非乱码）~ 基本实现（除去Timeline界面视频）
-- [x] ~高清视频下载（或许可以参考[这个Bilibili脚本](https://greasyfork.org/scripts/413228)）~ 使用m3u8 toolbox
+- [x] ~Timeline界面的下载功能~ 已实现
+- [x] ~文件重命名（改为非乱码）~ 基本实现
+- [x] ~高清视频下载~ 使用m3u8 toolbox
 - [ ] 支持FC（？）
