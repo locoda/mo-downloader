@@ -10,8 +10,6 @@
 // @match               http*://m.ldhgirls-m.jp/*
 // @icon                https://www.google.com/s2/favicons?sz=64&domain=ldh.co.jp
 // @source              https://github.com/locoda/mo-downloader
-// @updateURL           https://github.com/locoda/mo-downloader/raw/main/mo-downloder.user.js
-// @downloadURL         https://github.com/locoda/mo-downloader/raw/main/mo-downloder.user.js
 // @license             MIT
 // ==/UserScript==
 
@@ -98,14 +96,14 @@
         attachButtonToArticle(article);
     }
 
-    function findEligibleImgs(article) {
+    function findEligibleImgsFromArticle(article) {
         return Array.from(article.querySelectorAll("img"))
             .map((img) => img.src)
             .filter((img) => keywords.some((k) => img.includes(k)));
     }
 
     function attachButtonToArticle(article) {
-        var imgs = findEligibleImgs(article);
+        var imgs = findEligibleImgsFromArticle(article);
         // 注入按钮 div
         var buttonsDiv = getButtonDiv();
         article.insertBefore(buttonsDiv, article.firstChild);
@@ -124,7 +122,7 @@
                 buttonsDiv,
                 "下载所有图片 (" + imgs.length + ")",
                 function () {
-                    downloadOnClickHandler(article);
+                    downloadImages(findEligibleImgsFromArticle(article), getPrefixFromArticle(article));
                 }
             );
         }
@@ -235,10 +233,6 @@
             "background-color: transparent; border: solid #808080 2px; border-radius: 20px; color: #545454; margin: 0.2em;" +
             extraStyle;
         element.appendChild(btn);
-    }
-
-    function downloadOnClickHandler(article) {
-        downloadImages(findEligibleImgs(article), getPrefixFromArticle(article));
     }
 
     function getButtonDiv() {
