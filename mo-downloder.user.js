@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name                mo (LDH) 下载器
 // @namespace           https://1mether.me/
-// @version             0.34
+// @version             0.35
 // @description         在mo的内容页增加图片和视频下载的按钮， 解锁右键功能
 // @author              乙醚(@locoda)
 // @match               http*://m.tribe-m.jp/*
@@ -50,6 +50,7 @@
         (function init() {
             var counter = document.querySelector("ldh-infinite-scroll");
             if (counter) {
+                // 设置按钮和监听
                 customizedTimelinePage();
             } else {
                 setTimeout(init, 300);
@@ -64,9 +65,7 @@
         injectArtistPhotoDownloadButton();
     }
     // Offshot页面注入按钮
-    if (
-        window.location.href.includes("ldh_off_shot")
-    ) {
+    if (window.location.href.includes("ldh_off_shot")) {
         injectOffshotDownloadButton();
     }
 
@@ -147,30 +146,25 @@
             var mediaId = videoDiv.id.substring(videoDiv.id.lastIndexOf("_") + 1);
             moDownloaderDebug("正在下载视频： " + mediaId);
             injectOneButton(videoDiv.parentElement, "下载视频", function (event) {
-                downloadVideo(
-                    event.target,
-                    mediaId,
-                    getPrefixFromArticle(div) || getPrefixFromMovieDocument()
-                );
+                downloadVideo(event.target, mediaId, getPrefixFromArticle(div));
             });
         });
     }
 
     function injectArtistPhotoDownloadButton() {
         var inner = document.querySelector("#cms-inner");
+        var title, imgs;
         if (inner) {
             // New Page
-            var title = inner.querySelector(".cms-section__inner__one-col");
-            var imgs = Array.from(inner.querySelectorAll("ldh-cms-img img")).map(
+            title = inner.querySelector(".cms-section__inner__one-col");
+            imgs = Array.from(inner.querySelectorAll("ldh-cms-img img")).map(
                 (img) => img.src
             );
         } else {
             // Legacy Page
             inner = document.querySelector(".inner");
-            var title = inner.querySelector("section");
-            var imgs = Array.from(inner.querySelectorAll("img")).map(
-                (img) => img.src
-            );
+            title = inner.querySelector("section");
+            imgs = Array.from(inner.querySelectorAll("img")).map((img) => img.src);
         }
         var buttonsDiv = getButtonDiv();
         title.append(buttonsDiv);
@@ -179,7 +173,7 @@
                 buttonsDiv,
                 "下载所有图片 (" + imgs.length + ")",
                 function () {
-                    downloadImages(imgs, document.title.split("|")[0]);
+                    downloadImages(imgs, getPrefixFromDocument());
                 }
             );
         } else {
@@ -198,7 +192,7 @@
         var divs = Array.from(inner.querySelectorAll("div[id^='js-gallery']"));
         divs.map((div) => {
             var buttonsDiv = getButtonDiv();
-            div.parentElement.appendChild(buttonsDiv)
+            div.parentElement.appendChild(buttonsDiv);
             var imgs = Array.from(div.querySelectorAll("a")).map(
                 (a) => new URL(a.href, window.location.origin).href
             );
@@ -207,8 +201,8 @@
                     buttonsDiv,
                     "下载图片 (" + imgs.length + ")",
                     function () {
-                        downloadImages(imgs, document.title.split("|")[0] + div.id + " ");
-                    },
+                        downloadImages(imgs, getPrefixFromDocument());
+                    }
                 );
             }
         });
@@ -222,22 +216,24 @@
                 .split("/")[0];
             moDownloaderDebug("正在下载视频： " + mediaId);
             injectOneButton(videoDiv.parentElement, "下载视频", function (event) {
-                downloadVideo(
-                    event.target,
-                    mediaId,
-                    getPrefixFromArticle(div) || getPrefixFromMovieDocument()
-                );
+                downloadVideo(event.target, mediaId, getPrefixFromArticle(div));
             });
         });
     }
 
-    function injectOneButton(element, textOnButton, clickListener, extraStyle="") {
+    function injectOneButton(
+        element,
+        textOnButton,
+        clickListener,
+        extraStyle = ""
+    ) {
         var btn = document.createElement("BUTTON");
         var btnText = document.createTextNode(textOnButton);
         btn.appendChild(btnText);
         btn.addEventListener("click", clickListener);
         btn.style =
-            "background-color: transparent; border: solid #808080 2px; border-radius: 20px; color: #545454; margin: 0.2em;" + extraStyle;
+            "background-color: transparent; border: solid #808080 2px; border-radius: 20px; color: #545454; margin: 0.2em;" +
+            extraStyle;
         element.appendChild(btn);
     }
 
@@ -271,17 +267,26 @@
         document
             .querySelectorAll("ldh-infinite-scroll article")
             .forEach((article) => attachButtonToArticle(article));
-        //
+        document
+            .querySelectorAll("ldh-infinite-scroll ldh-imagediary-timeline-list-item")
+            .forEach((article) => attachButtonToArticle(article));
         const infiniteScrollContainer = document.querySelector(
             "ldh-infinite-scroll"
         );
         const config = { childList: true };
         const observer = new MutationObserver(function (mutations, observer) {
             var nodes = mutations.find((r) =>
-                Array.from(r.addedNodes).filter((n) => (n.className = "article"))
+                Array.from(r.addedNodes).filter(
+                    (n) =>
+                        n.className == "article" ||
+                        n.className == "ldh-imagediary-timeline-list-item"
+                )
             ).addedNodes;
             nodes.forEach((node) =>
-                attachButtonToArticle(node.querySelector("article"))
+                attachButtonToArticle(
+                    node.querySelector("article") ||
+                    node.querySelector("ldh-imagediary-timeline-list-item")
+                )
             );
             removeProtectImg();
             moDownloaderDebug("解除刷新后时间线右键限制");
@@ -305,7 +310,7 @@
             imgs.forEach((img, index) => {
                 setTimeout(function () {
                     downloadOneImage(img, prefix);
-                }, index * 300);
+                }, index * 200);
             });
         }
     }
@@ -387,7 +392,7 @@
             let id = btoa(encodeURIComponent(filename));
             var a = button.parentElement.querySelector("a.mo-downloader");
             if (!a) {
-                var a = document.createElement("a");
+                a = document.createElement("a");
                 var aText = document.createTextNode("点击打开下载页面");
                 a.className = "mo-downloader";
                 a.append(aText);
@@ -397,7 +402,7 @@
                 button.parentElement.appendChild(a);
             }
         } else {
-            var a = document.createElement("a");
+            a = document.createElement("a");
             a.target = "_blank";
             a.href = constructM3U8ToolBoxURL(m3u8Url, filename);
             document.body.appendChild(a);
@@ -435,10 +440,11 @@
                     .join("_") + "_"
             );
         }
-        return "";
+        return getPrefixFromDocument();
     }
 
-    function getPrefixFromMovieDocument() {
+    function getPrefixFromDocument() {
+        // 如果存在，使用movie标题
         var candidate = document.querySelector(".movie-title-block");
         if (candidate) {
             return sanitizeFileName(
@@ -448,7 +454,7 @@
                     .join("_") + "_"
             );
         }
-        return "";
+        return sanitizeFileName(document.title.split("|")[0] + "_");
     }
 
     function getFilenameFromVideoUrl(url) {
