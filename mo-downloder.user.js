@@ -395,7 +395,7 @@
                     prefix + img.substring(img.lastIndexOf("/") + 1)
                 )
             )
-            .catch((e) => console.error(e));
+            .catch((e) => moDownloaderError(e));
     }
 
     function downloadVideo(button, video, prefix = "") {
@@ -451,6 +451,10 @@
         a.remove();
     }
 
+    // ====================
+    // =    M3U8 Utils    =
+    // ====================
+
     function openM3U8ToolBox(button, m3u8Url, filename) {
         // 打开 https://tools.thatwind.com/tool/m3u8downloader
         if (isMobile()) {
@@ -499,12 +503,7 @@
             article.querySelector(".article__header") ||
             article.querySelector(".p-detail_article__header-text");
         if (candidate) {
-            return sanitizeFileName(
-                candidate.textContent
-                    .split(/\s/g)
-                    .filter((s) => s)
-                    .join("_") + "_"
-            );
+            return sanitizeFileName(candidate.textContent) + "_";
         }
         return getPrefixFromDocument();
     }
@@ -513,12 +512,7 @@
         // 如果存在，使用movie标题
         var candidate = document.querySelector(".movie-title-block");
         if (candidate) {
-            return sanitizeFileName(
-                candidate.textContent
-                    .split(/\s/g)
-                    .filter((s) => s)
-                    .join("_") + "_"
-            );
+            return sanitizeFileName(candidate.textContent) + "_";
         }
         return sanitizeFileName(document.title.split("|")[0] + "_");
     }
@@ -539,6 +533,9 @@
         const windowsReservedRe = /^(con|prn|aux|nul|com[0-9]|lpt[0-9])(\..*)?$/i;
         const windowsTrailingRe = /[\. ]+$/;
         return input
+            .split(/\s/g)
+            .filter((s) => s)
+            .join("_")
             .replace(illegalRe, replacement)
             .replace(controlRe, replacement)
             .replace(reservedRe, replacement)
@@ -556,5 +553,9 @@
 
     function moDownloaderDebug(msg) {
         console.debug("[mo-downloder] " + msg);
+    }
+
+    function moDownloaderError(msg) {
+        console.error("[mo-downloder] " + msg);
     }
 })();
