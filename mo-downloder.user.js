@@ -1,13 +1,14 @@
 // ==UserScript==
 // @name                mo (LDH) 下载器
 // @namespace           https://1mether.me/
-// @version             0.35
+// @version             0.36
 // @description         在mo的内容页增加图片和视频下载的按钮， 解锁右键功能
 // @author              乙醚(@locoda)
 // @match               http*://m.tribe-m.jp/*
 // @match               http*://m.ex-m.jp/*
 // @match               http*://m.ldh-m.jp/*
 // @match               http*://m.ldhgirls-m.jp/*
+// @match               http*://id.exfamily.jp/s/ldh/*
 // @icon                https://www.google.com/s2/favicons?sz=64&domain=ldh.co.jp
 // @source              https://github.com/locoda/mo-downloader
 // @license             MIT
@@ -29,42 +30,51 @@
     // ==============
     // =    Main    =
     // ==============
-
-    // 删除图片保护
-    removeProtectImg();
-    // 在详情页注入按钮
-    if (window.location.href.includes("detail")) {
-        injectDownloadAllButtons();
-    }
-    // 根据视频注入按钮
-    if (window.location.href.includes("movie")) {
-        if (document.querySelector("div.limelight-player")) {
-            injectPerVideoDownloadButton(document);
+    
+    // Mo 下载图片
+    if (window.location.href.includes("-m.jp")) {
+        // 删除图片保护
+        removeProtectImg();
+        // 在详情页注入按钮
+        if (window.location.href.includes("detail")) {
+            injectDownloadAllButtons();
+        }
+        // 根据视频注入按钮
+        if (window.location.href.includes("movie")) {
+            if (document.querySelector("div.limelight-player")) {
+                injectPerVideoDownloadButton(document);
+            }
+        }
+        // 在时间轴界面设置Listener
+        if (window.location.href.includes("timeline")) {
+            // 等待加载scroll
+            (function init() {
+                var counter = document.querySelector("ldh-infinite-scroll");
+                if (counter) {
+                    // 设置按钮和监听
+                    customizedTimelinePage();
+                } else {
+                    setTimeout(init, 300);
+                }
+            })();
+        }
+        // A写页面注入按钮
+        if (
+            window.location.href.includes("artistphoto") ||
+            window.location.href.includes("artist_photo")
+        ) {
+            injectArtistPhotoDownloadButton();
+        }
+        // Offshot页面注入按钮
+        if (window.location.href.includes("ldh_off_shot")) {
+            injectOffshotDownloadButton();
         }
     }
-    // 在时间轴界面设置Listener
-    if (window.location.href.includes("timeline")) {
-        // 等待加载scroll
-        (function init() {
-            var counter = document.querySelector("ldh-infinite-scroll");
-            if (counter) {
-                // 设置按钮和监听
-                customizedTimelinePage();
-            } else {
-                setTimeout(init, 300);
-            }
-        })();
-    }
-    // A写页面注入按钮
-    if (
-        window.location.href.includes("artistphoto") ||
-        window.location.href.includes("artist_photo")
-    ) {
-        injectArtistPhotoDownloadButton();
-    }
-    // Offshot页面注入按钮
-    if (window.location.href.includes("ldh_off_shot")) {
-        injectOffshotDownloadButton();
+
+    // FC 下载图片
+    if (window.location.href.includes("exfamily.jp")) {
+        // FC Magazine 下载图片
+        injectFCMagazineButton();
     }
 
     // ===============
@@ -122,7 +132,10 @@
                 buttonsDiv,
                 "下载所有图片 (" + imgs.length + ")",
                 function () {
-                    downloadImages(findEligibleImgsFromArticle(article), getPrefixFromArticle(article));
+                    downloadImages(
+                        findEligibleImgsFromArticle(article),
+                        getPrefixFromArticle(article)
+                    );
                 }
             );
         }
@@ -217,6 +230,50 @@
                 downloadVideo(event.target, mediaId, getPrefixFromArticle(div));
             });
         });
+    }
+
+    function injectFCMagazineButton() {
+        var article = document.querySelector("article");
+        var imgs = Array.from(article.querySelectorAll("img")).map(
+            (img) =>
+                new URL(img.getAttribute("data-src") || img.src, window.location.origin)
+                    .href
+        );
+        imgs = [...new Set(imgs)];
+        var buttonsDiv = getButtonDiv();
+        article.insertBefore(buttonsDiv, article.firstChild);
+        injectOneButton(buttonsDiv, "下载全部图片 (" + imgs.length + ")", function () {
+            downloadImages(imgs, getPrefixFromArticle(article));
+        });
+        Array.from(article.querySelectorAll(".js-img")).forEach(
+            (jsImg) => {
+                var buttonsDiv = getButtonDiv();
+                jsImg.parentElement.insertBefore(buttonsDiv, jsImg);
+                var imgs = Array.from(jsImg.querySelectorAll("img")).map(
+                    (img) =>
+                        new URL(img.getAttribute("data-src") || img.src, window.location.origin)
+                            .href
+                );
+                injectOneButton(buttonsDiv, "下载图片 (" + imgs.length + ")", function () {
+                    downloadImages(imgs, getPrefixFromArticle(article));
+                });
+            }
+        )
+        Array.from(article.querySelectorAll(".js-gallery .c-gallery__main")).forEach(
+            (jsGallery) => {
+                var buttonsDiv = getButtonDiv();
+                jsGallery.parentElement.insertBefore(buttonsDiv, jsGallery);
+                var imgs = Array.from(jsGallery.querySelectorAll("img")).map(
+                    (img) =>
+                        new URL(img.getAttribute("data-src") || img.src, window.location.origin)
+                            .href
+                );
+                imgs = [...new Set(imgs)];
+                injectOneButton(buttonsDiv, "下载全部图片 (" + imgs.length + ")", function () {
+                    downloadImages(imgs, getPrefixFromArticle(article));
+                });
+            }
+        )
     }
 
     function injectOneButton(
@@ -425,7 +482,8 @@
     function getPrefixFromArticle(article) {
         var candidate =
             article.querySelector(".article__head") ||
-            article.querySelector(".article__header");
+            article.querySelector(".article__header") ||
+            article.querySelector(".p-detail_article__header-text");
         if (candidate) {
             return sanitizeFileName(
                 candidate.textContent
