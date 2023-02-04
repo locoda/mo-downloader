@@ -30,23 +30,23 @@
     // ==============
     // =    Main    =
     // ==============
-    
+
     // Mo 下载图片
-    if (window.location.href.includes("-m.jp")) {
+    if (window.location.host.includes("-m.jp")) {
         // 删除图片保护
         removeProtectImg();
         // 在详情页注入按钮
-        if (window.location.href.includes("detail")) {
+        if (window.location.pathname.includes("detail")) {
             injectDownloadAllButtons();
         }
-        // 根据视频注入按钮
-        if (window.location.href.includes("movie")) {
+        // 在视频页面注入按钮
+        if (window.location.pathname.includes("movie")) {
             if (document.querySelector("div.limelight-player")) {
                 injectPerVideoDownloadButton(document);
             }
         }
-        // 在时间轴界面设置Listener
-        if (window.location.href.includes("timeline")) {
+        // 在时间轴界面初始化并设置Listener
+        if (window.location.pathname.includes("timeline")) {
             // 等待加载scroll
             (function init() {
                 var counter = document.querySelector("ldh-infinite-scroll");
@@ -58,21 +58,21 @@
                 }
             })();
         }
-        // A写页面注入按钮
+        // 在A写页面注入按钮
         if (
-            window.location.href.includes("artistphoto") ||
-            window.location.href.includes("artist_photo")
+            window.location.pathname.includes("artistphoto") ||
+            window.location.pathname.includes("artist_photo")
         ) {
-            injectArtistPhotoDownloadButton();
+            在injectArtistPhotoDownloadButton();
         }
         // Offshot页面注入按钮
-        if (window.location.href.includes("ldh_off_shot")) {
+        if (window.location.pathname.includes("ldh_off_shot")) {
             injectOffshotDownloadButton();
         }
     }
 
     // FC 下载图片
-    if (window.location.href.includes("exfamily.jp")) {
+    if (window.location.host.includes("exfamily.jp")) {
         // FC Magazine 下载图片
         injectFCMagazineButton();
     }
@@ -201,7 +201,7 @@
     function injectOffshotDownloadButton() {
         var inner = document.querySelector(".inner");
         var divs = Array.from(inner.querySelectorAll("div[id^='js-gallery']"));
-        divs.map((div) => {
+        divs.forEach((div) => {
             var buttonsDiv = getButtonDiv();
             div.parentElement.appendChild(buttonsDiv);
             var imgs = Array.from(div.querySelectorAll("a")).map(
@@ -242,38 +242,52 @@
         imgs = [...new Set(imgs)];
         var buttonsDiv = getButtonDiv();
         article.insertBefore(buttonsDiv, article.firstChild);
-        injectOneButton(buttonsDiv, "下载全部图片 (" + imgs.length + ")", function () {
-            downloadImages(imgs, getPrefixFromArticle(article));
+        injectOneButton(
+            buttonsDiv,
+            "下载全部图片 (" + imgs.length + ")",
+            function () {
+                downloadImages(imgs, getPrefixFromArticle(article));
+            }
+        );
+        Array.from(article.querySelectorAll(".js-img")).forEach((jsImg) => {
+            var buttonsDiv = getButtonDiv();
+            jsImg.parentElement.insertBefore(buttonsDiv, jsImg);
+            var imgs = Array.from(jsImg.querySelectorAll("img")).map(
+                (img) =>
+                    new URL(
+                        img.getAttribute("data-src") || img.src,
+                        window.location.origin
+                    ).href
+            );
+            injectOneButton(
+                buttonsDiv,
+                "下载图片 (" + imgs.length + ")",
+                function () {
+                    downloadImages(imgs, getPrefixFromArticle(article));
+                }
+            );
         });
-        Array.from(article.querySelectorAll(".js-img")).forEach(
-            (jsImg) => {
-                var buttonsDiv = getButtonDiv();
-                jsImg.parentElement.insertBefore(buttonsDiv, jsImg);
-                var imgs = Array.from(jsImg.querySelectorAll("img")).map(
-                    (img) =>
-                        new URL(img.getAttribute("data-src") || img.src, window.location.origin)
-                            .href
-                );
-                injectOneButton(buttonsDiv, "下载图片 (" + imgs.length + ")", function () {
+        Array.from(
+            article.querySelectorAll(".js-gallery .c-gallery__main")
+        ).forEach((jsGallery) => {
+            var buttonsDiv = getButtonDiv();
+            jsGallery.parentElement.insertBefore(buttonsDiv, jsGallery);
+            var imgs = Array.from(jsGallery.querySelectorAll("img")).map(
+                (img) =>
+                    new URL(
+                        img.getAttribute("data-src") || img.src,
+                        window.location.origin
+                    ).href
+            );
+            imgs = [...new Set(imgs)];
+            injectOneButton(
+                buttonsDiv,
+                "下载全部图片 (" + imgs.length + ")",
+                function () {
                     downloadImages(imgs, getPrefixFromArticle(article));
-                });
-            }
-        )
-        Array.from(article.querySelectorAll(".js-gallery .c-gallery__main")).forEach(
-            (jsGallery) => {
-                var buttonsDiv = getButtonDiv();
-                jsGallery.parentElement.insertBefore(buttonsDiv, jsGallery);
-                var imgs = Array.from(jsGallery.querySelectorAll("img")).map(
-                    (img) =>
-                        new URL(img.getAttribute("data-src") || img.src, window.location.origin)
-                            .href
-                );
-                imgs = [...new Set(imgs)];
-                injectOneButton(buttonsDiv, "下载全部图片 (" + imgs.length + ")", function () {
-                    downloadImages(imgs, getPrefixFromArticle(article));
-                });
-            }
-        )
+                }
+            );
+        });
     }
 
     function injectOneButton(
@@ -355,7 +369,7 @@
         // Thanks to https://github.com/y252328/Instagram_Download_Button
         if (imgs.length <= 10) {
             // 同时最多下载十张图
-            imgs.map((img) => downloadOneImage(img, prefix));
+            imgs.forEach((img) => downloadOneImage(img, prefix));
         } else {
             // 设置延时下载更多图片 https://stackoverflow.com/questions/56244902/56245610#56245610
             imgs.forEach((img, index) => {
