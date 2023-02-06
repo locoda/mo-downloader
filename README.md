@@ -5,7 +5,8 @@
 ## 功能
 
 - 解锁mo页面右键限制、解锁图片下载保存限制
-- 添加可以下载mo页面所有图片按钮，点击即可全部图片
+- 添加可以下载mo页面所有图片按钮，点击即可下载全部图片
+- 在FC Magazine页面添加可以下载图片的按钮
 - 【新改动】对每个视频添加下载按钮，会自动打开m3u8下载器，使用方法参考下文【m3u8下载器使用方法】
   - 如果不喜欢这个行为请降级到[0.24](https://greasyfork.org/scripts/459051?version=1143546)
 
@@ -46,6 +47,7 @@
    - ![Install User Script on iOS](https://mo-downloader.pages.dev/demos/iOS-user-script-install.png)
    - 如果你只需要解锁图片功能，请前往【[GreasyFork](https://greasyfork.org/scripts/459052)】安装轻量版图片解锁器
 3. 【[点击这里](https://www.icloud.com/shortcuts/bbd0e1dc58ed416f912ebb060beea996)】安装配套的iOS快捷指令
+   - 如果上面这个快捷指令无法使用，请试试【[这个](https://www.icloud.com/shortcuts/5699e7eafc2e41ffb7906ed46ffcf499)】
 4. 在mo的页面中点击【生成图片链接】按钮，将生成的文本分享至iOS快捷指令中，图片将直接保存到相册
    - （这里应该有一张动图，没有的话点[此处](https://mo-downloader.pages.dev/demos/iOS-download.gif))
    ![iOS Download Demo](https://mo-downloader.pages.dev/demos/iOS-download.gif)
