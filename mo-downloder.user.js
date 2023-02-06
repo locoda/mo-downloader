@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name                mo (LDH) 下载器
 // @namespace           https://1mether.me/
-// @version             0.36
+// @version             0.38
 // @description         在mo的内容页增加图片和视频下载的按钮， 解锁右键功能
 // @author              乙醚(@locoda)
 // @match               http*://m.tribe-m.jp/*
@@ -63,9 +63,9 @@
             window.location.pathname.includes("artistphoto") ||
             window.location.pathname.includes("artist_photo")
         ) {
-            在injectArtistPhotoDownloadButton();
+            injectArtistPhotoDownloadButton();
         }
-        // Offshot页面注入按钮
+        // 在Offshot页面注入按钮
         if (window.location.pathname.includes("ldh_off_shot")) {
             injectOffshotDownloadButton();
         }
@@ -118,27 +118,7 @@
         var buttonsDiv = getButtonDiv();
         article.insertBefore(buttonsDiv, article.firstChild);
         // 图片链接生成按钮
-        if (isMobile()) {
-            injectOneButton(
-                buttonsDiv,
-                "生成图片链接(" + imgs.length + ")",
-                function () {
-                    generateOnClickHandler(buttonsDiv, imgs);
-                }
-            );
-        } else {
-            // 图片下载按钮
-            injectOneButton(
-                buttonsDiv,
-                "下载所有图片 (" + imgs.length + ")",
-                function () {
-                    downloadImages(
-                        findEligibleImgsFromArticle(article),
-                        getPrefixFromArticle(article)
-                    );
-                }
-            );
-        }
+        injectImageDownloadButton(buttonsDiv, imgs, getPrefixFromArticle(article));
         // 视频下载按钮
         if (
             article.querySelector("div.limelight-player") ||
@@ -179,23 +159,7 @@
         }
         var buttonsDiv = getButtonDiv();
         title.append(buttonsDiv);
-        if (!isMobile()) {
-            injectOneButton(
-                buttonsDiv,
-                "下载所有图片 (" + imgs.length + ")",
-                function () {
-                    downloadImages(imgs, getPrefixFromDocument());
-                }
-            );
-        } else {
-            injectOneButton(
-                buttonsDiv,
-                "生成图片链接(" + imgs.length + ")",
-                function () {
-                    generateOnClickHandler(buttonsDiv, imgs);
-                }
-            );
-        }
+        injectImageDownloadButton(buttonsDiv, imgs, getPrefixFromDocument());
     }
 
     function injectOffshotDownloadButton() {
@@ -207,15 +171,7 @@
             var imgs = Array.from(div.querySelectorAll("a")).map(
                 (a) => new URL(a.href, window.location.origin).href
             );
-            if (!isMobile()) {
-                injectOneButton(
-                    buttonsDiv,
-                    "下载图片 (" + imgs.length + ")",
-                    function () {
-                        downloadImages(imgs, getPrefixFromDocument());
-                    }
-                );
-            }
+            injectImageDownloadButton(buttonsDiv, imgs, getPrefixFromDocument());
         });
     }
 
@@ -242,13 +198,7 @@
         imgs = [...new Set(imgs)];
         var buttonsDiv = getButtonDiv();
         article.insertBefore(buttonsDiv, article.firstChild);
-        injectOneButton(
-            buttonsDiv,
-            "下载全部图片 (" + imgs.length + ")",
-            function () {
-                downloadImages(imgs, getPrefixFromArticle(article));
-            }
-        );
+        injectImageDownloadButton(buttonsDiv, imgs, getPrefixFromArticle(article));
         Array.from(article.querySelectorAll(".js-img")).forEach((jsImg) => {
             var buttonsDiv = getButtonDiv();
             jsImg.parentElement.insertBefore(buttonsDiv, jsImg);
@@ -259,12 +209,11 @@
                         window.location.origin
                     ).href
             );
-            injectOneButton(
+            injectImageDownloadButton(
                 buttonsDiv,
-                "下载图片 (" + imgs.length + ")",
-                function () {
-                    downloadImages(imgs, getPrefixFromArticle(article));
-                }
+                imgs,
+                getPrefixFromArticle(article),
+                false
             );
         });
         Array.from(
@@ -280,29 +229,43 @@
                     ).href
             );
             imgs = [...new Set(imgs)];
-            injectOneButton(
+            injectImageDownloadButton(
                 buttonsDiv,
-                "下载全部图片 (" + imgs.length + ")",
-                function () {
-                    downloadImages(imgs, getPrefixFromArticle(article));
-                }
+                imgs,
+                getPrefixFromArticle(article)
             );
         });
     }
 
-    function injectOneButton(
-        element,
-        textOnButton,
-        clickListener,
-        extraStyle = ""
-    ) {
+    function injectImageDownloadButton(element, imgs, prefix, infix = true) {
+        if (isMobile()) {
+            // 手机用图片链接生成按钮
+            injectOneButton(
+                element,
+                "生成图片链接(" + imgs.length + ")",
+                function () {
+                    generateOnClickHandler(element, imgs);
+                }
+            );
+        } else {
+            // 图片下载按钮
+            injectOneButton(
+                element,
+                (infix ? "下载所有图片 (" : "下载图片 (") + imgs.length + ")",
+                function () {
+                    downloadImages(imgs, prefix);
+                }
+            );
+        }
+    }
+
+    function injectOneButton(element, textOnButton, clickListener) {
         var btn = document.createElement("BUTTON");
         var btnText = document.createTextNode(textOnButton);
         btn.appendChild(btnText);
         btn.addEventListener("click", clickListener);
         btn.style =
-            "background-color: transparent; border: solid #808080 2px; border-radius: 20px; color: #545454; margin: 0.2em;" +
-            extraStyle;
+            "background-color: transparent; border: solid #808080 2px; border-radius: 20px; color: #545454; margin: 0.2em;";
         element.appendChild(btn);
     }
 
