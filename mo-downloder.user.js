@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name                mo (LDH) 下载器
 // @namespace           https://1mether.me/
-// @version             0.38
+// @version             0.39
 // @description         在mo的内容页增加图片和视频下载的按钮， 解锁右键功能
 // @author              乙醚(@locoda)
 // @match               http*://m.tribe-m.jp/*
@@ -52,6 +52,7 @@
                 var counter = document.querySelector("ldh-infinite-scroll");
                 if (counter) {
                     // 设置按钮和监听
+                    removeProtectImg();
                     customizedTimelinePage();
                 } else {
                     setTimeout(init, 300);
