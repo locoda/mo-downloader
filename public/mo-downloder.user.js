@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name                mo (LDH) 下载器
 // @namespace           https://1mether.me/
-// @version             0.39
+// @version             0.40
 // @description         在mo的内容页增加图片和视频下载的按钮， 解锁右键功能
 // @author              乙醚(@locoda)
 // @match               http*://m.tribe-m.jp/*
@@ -333,15 +333,22 @@
         // Thanks to https://github.com/y252328/Instagram_Download_Button
         if (imgs.length <= 10) {
             // 同时最多下载十张图
-            imgs.forEach((img) => downloadOneImage(img, prefix));
+            imgs.forEach((img, index) => downloadOneImage(img, appendIndexToPrefix(prefix, index)));
         } else {
             // 设置延时下载更多图片 https://stackoverflow.com/questions/56244902/56245610#56245610
             imgs.forEach((img, index) => {
                 setTimeout(function () {
-                    downloadOneImage(img, prefix);
+                    downloadOneImage(img, appendIndexToPrefix(prefix, index));
                 }, index * 200);
             });
         }
+    }
+
+    function appendIndexToPrefix(prefix, index) {
+        return prefix + (index + 1).toLocaleString('en-US', {
+            minimumIntegerDigits: 3,
+            useGrouping: false
+          }) + '_'
     }
 
     function downloadOneImage(img, prefix = "") {
