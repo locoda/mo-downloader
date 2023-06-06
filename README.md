@@ -32,8 +32,10 @@
    - 我使用的是Tampermonkey（油猴）（[官网](https://www.tampermonkey.net/)）（[Chrome商店](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo)）
 2. 前往【[GreasyFork](https://greasyfork.org/scripts/459051)】安装最新版的图片下载器用户脚本（脚本管理器自动识别）
    - 如果你只需要解锁图片右键功能，请前往【[GreasyFork](https://greasyfork.org/scripts/459052)】安装轻量版图片解锁器
-3. 在mo的页面中点击【下载所有图片】或【下载所有视频】按钮即可
+3. 在mo或FC的页面中点击【下载所有图片】或【下载所有视频】按钮即可
    - ![Chrome Download Demo](https://mo-downloader.pages.dev/demos/chrome-download.png)
+   - ![Chrome FC Magazine Download Demo](https://mo-downloader.pages.dev/demos/chrome-fc-magazine.png)
+   - ![Chrome FC Gallery Download Demo](https://mo-downloader.pages.dev/demos/chrome-fc-gallery.png)
 
 ## （测试中）iOS端使用方法
 
@@ -48,7 +50,7 @@
    - 如果你只需要解锁图片功能，请前往【[GreasyFork](https://greasyfork.org/scripts/459052)】安装轻量版图片解锁器
 3. 【[点击这里](https://www.icloud.com/shortcuts/bbd0e1dc58ed416f912ebb060beea996)】安装配套的iOS快捷指令
    - 如果上面这个快捷指令无法使用，请试试【[这个](https://www.icloud.com/shortcuts/5699e7eafc2e41ffb7906ed46ffcf499)】
-4. 在mo的页面中点击【生成图片链接】按钮，将生成的文本分享至iOS快捷指令中，图片将直接保存到相册
+4. 在mo或FC的页面中点击【生成图片链接】按钮，将生成的文本分享至iOS快捷指令中，图片将直接保存到相册
    - （这里应该有一张动图，没有的话点[此处](https://mo-downloader.pages.dev/demos/iOS-download.gif))
    ![iOS Download Demo](https://mo-downloader.pages.dev/demos/iOS-download.gif)
 
