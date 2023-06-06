@@ -1,14 +1,14 @@
 // ==UserScript==
 // @name                mo (LDH) 下载器
 // @namespace           https://1mether.me/
-// @version             0.40
+// @version             0.80
 // @description         在mo的内容页增加图片和视频下载的按钮， 解锁右键功能
 // @author              乙醚(@locoda)
 // @match               http*://m.tribe-m.jp/*
 // @match               http*://m.ex-m.jp/*
 // @match               http*://m.ldh-m.jp/*
 // @match               http*://m.ldhgirls-m.jp/*
-// @match               http*://id.exfamily.jp/s/ldh/*
+// @match               http*://*.exfamily.jp/*
 // @icon                https://www.google.com/s2/favicons?sz=64&domain=ldh.co.jp
 // @source              https://github.com/locoda/mo-downloader
 // @license             MIT
@@ -74,8 +74,8 @@
 
     // FC 下载图片
     if (window.location.host.includes("exfamily.jp")) {
-        // FC Magazine 下载图片
         injectFCMagazineButton();
+        injectFCGalleryButton();
     }
 
     // ===============
@@ -191,6 +191,7 @@
 
     function injectFCMagazineButton() {
         var article = document.querySelector("article");
+        if (!article) return;
         var imgs = Array.from(article.querySelectorAll("img")).map(
             (img) =>
                 new URL(img.getAttribute("data-src") || img.src, window.location.origin)
@@ -236,6 +237,18 @@
                 getPrefixFromArticle(article)
             );
         });
+    }
+
+    function injectFCGalleryButton() {
+        var gallery = document.querySelector(".p-gallery_detail");
+        if (!gallery) return;
+        var imgs = Array.from(gallery.querySelectorAll(".thumbnail img"))
+            .filter((img) => !img.src.includes("photoCover.png"))
+            .map((img) => new URL(img.src, window.location.origin).href);
+        imgs = [...new Set(imgs)];
+        var buttonsDiv = getButtonDiv();
+        gallery.insertBefore(buttonsDiv, gallery.firstChild);
+        injectImageDownloadButton(buttonsDiv, imgs, getPrefixFromArticle(gallery));
     }
 
     function injectImageDownloadButton(element, imgs, prefix, infix = true) {
@@ -333,7 +346,9 @@
         // Thanks to https://github.com/y252328/Instagram_Download_Button
         if (imgs.length <= 10) {
             // 同时最多下载十张图
-            imgs.forEach((img, index) => downloadOneImage(img, appendIndexToPrefix(prefix, index)));
+            imgs.forEach((img, index) =>
+                downloadOneImage(img, appendIndexToPrefix(prefix, index))
+            );
         } else {
             // 设置延时下载更多图片 https://stackoverflow.com/questions/56244902/56245610#56245610
             imgs.forEach((img, index) => {
@@ -345,10 +360,14 @@
     }
 
     function appendIndexToPrefix(prefix, index) {
-        return prefix + (index + 1).toLocaleString('en-US', {
-            minimumIntegerDigits: 3,
-            useGrouping: false
-          }) + '_'
+        return (
+            prefix +
+            (index + 1).toLocaleString("en-US", {
+                minimumIntegerDigits: 3,
+                useGrouping: false,
+            }) +
+            "_"
+        );
     }
 
     function downloadOneImage(img, prefix = "") {
@@ -472,7 +491,8 @@
         var candidate =
             article.querySelector(".article__head") ||
             article.querySelector(".article__header") ||
-            article.querySelector(".p-detail_article__header-text");
+            article.querySelector(".p-detail_article__header-text") ||
+            article.querySelector(".p-gallery_detail__header");
         if (candidate) {
             return sanitizeFileName(candidate.textContent) + "_";
         }
