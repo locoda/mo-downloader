@@ -15,7 +15,7 @@
 
 ### 图片下载器
 
-【[GreasyFork](https://greasyfork.org/scripts/459051)】【[GitHub](https://github.com/locoda/mo-downloader/raw/main/mo-downloder.user.js)（🪜）】【[Cloudflare](https://mo-downloader.pages.dev/mo-downloder.user.js)】
+【[GreasyFork](https://greasyfork.org/scripts/459051)】【[GitHub](https://github.com/locoda/mo-downloader/raw/main/mo-downloader.user.js)（🪜）】【[Cloudflare](https://mo-downloader.pages.dev/mo-downlodaer.user.js)】
 
 包括所有功能（解锁图片、下载图片、下载视频）
 
