@@ -1,6 +1,6 @@
 # mo (LDH) 图片下载脚本/图片解锁脚本
 
-【[GitHub主页](https://github.com/locoda/mo-downloader)】【[作者微博](https://weibo.com/locoda) ⬅️私信反馈】
+【[GitHub主页](https://github.com/locoda/mo-downloader)】
 
 ## 功能
 
